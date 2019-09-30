@@ -18,7 +18,8 @@ public class Projectile : MonoBehaviour
         _initialPosition = this.transform.position;
     }
 
-    void Update()
+    //Fix update to make sure physics engine works properly
+    void FixedUpdate()
     {
         //move the projective forward
         transform.Translate(speed * Time.deltaTime * Vector3.forward);

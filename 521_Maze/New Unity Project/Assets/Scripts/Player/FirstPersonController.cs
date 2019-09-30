@@ -28,18 +28,30 @@ public class FirstPersonController : MonoBehaviour
     private bool _isMoving = false;
     private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+
     }
 
-    void Update()
+    private void Update()
     {
+        if (GameFlowManager.Instance.GameStatus == GameFlowManager.GameStage.GameFinished)
+        {
+            return;
+        }
+
+        // rotation
+        Rotation();
+    }
+
+    //Fix update to make sure physics engine works properly
+    void FixedUpdate()
+    {
+     
         // different move strategy based on the current status of the game
         if(GameFlowManager.Instance.GameStatus == GameFlowManager.GameStage.OutsideMaze)
         {
             OutsideMovement();
         }
-        else
+        else if(GameFlowManager.Instance.GameStatus == GameFlowManager.GameStage.InMaze)
         {
             GridBasedMovement();
         }
@@ -64,9 +76,6 @@ public class FirstPersonController : MonoBehaviour
             }
         }
 
-
-        // rotation
-        Rotation();
     }
 
     private IEnumerator Jump()
@@ -115,17 +124,9 @@ public class FirstPersonController : MonoBehaviour
         _playerCamera.transform.eulerAngles = new Vector3(-x_rotation, y_rotation, 0);
     }
 
+    //Use grid based system after entering the maze
     private void GridBasedMovement()
     {
-        Rotation();
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            _isJumping = false;
-            _isMoving = false;
-            this.StopAllCoroutines();
-            GameFlowManager.Instance.EnterMaze();
-        }
-
         if (_isJumping || _isMoving)
         {
             return;
@@ -135,19 +136,23 @@ public class FirstPersonController : MonoBehaviour
         {
 
             //Check the next direction to move based on current forward direction
+            var currentCoord = new Tuple<int, int>((int)Math.Round(this.transform.position.x), (int)Math.Round(this.transform.position.z));
             Vector3 desiredPosition;
             if(Math.Abs(transform.forward.z) > Math.Abs(transform.forward.x)){
-                desiredPosition = new Vector3(this.transform.position.x, this.transform.position.y, (int)(Math.Round(this.transform.position.z + Math.Sign(transform.forward.z))));
+                desiredPosition = new Vector3(this.transform.position.x, this.transform.position.y, currentCoord.Item2 + Math.Sign(transform.forward.z));
             }
             else
             {
-                desiredPosition = new Vector3((int)(Math.Round(this.transform.position.x + Math.Sign(transform.forward.x))), this.transform.position.y, this.transform.position.z);
+                desiredPosition = new Vector3(currentCoord.Item1 + Math.Sign(transform.forward.x), this.transform.position.y, this.transform.position.z);
             }
 
             var coord = new Tuple<int, int>((int)Math.Round(desiredPosition.x), (int)Math.Round(desiredPosition.z));
 
+            // if the next grid is safe, and the player is not currently stuck by a tree, then move there
             if (MazeManager.Instance.CanMove(coord))
             {
+                //Move Indicator to the next position
+                MazeManager.Instance.NextGuidance(currentCoord, coord);
                 _isMoving = true;
                 var direction = (desiredPosition - this.transform.position).normalized;
                 StartCoroutine(GridMove(direction, desiredPosition));
@@ -172,9 +177,25 @@ public class FirstPersonController : MonoBehaviour
             transform.position += direction * _gridMovementSpeed;
             yield return null;
         }
-        _isMoving = false;
 
         //Update Maze Time
         MazeManager.Instance.ForwardTime();
+
+        //check if the player is blocked by the tree, if it is then game over.
+        var currentCoord = new Tuple<int, int>((int)Math.Round(this.transform.position.x), (int)Math.Round(this.transform.position.z));
+        if (!MazeManager.Instance.CanMove(currentCoord))
+        {
+            GameFlowManager.Instance.GameLose();
+            yield break;
+        }
+        _isMoving = false;
+    }
+
+    public void ResetPlayer()
+    {
+        _isJumping = false;
+        _isMoving = false;
+        GetComponent<Rigidbody>().useGravity = true;
+        this.StopAllCoroutines();
     }
 }

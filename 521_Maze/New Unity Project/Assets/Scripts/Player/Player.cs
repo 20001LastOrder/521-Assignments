@@ -20,6 +20,12 @@ public class Player : MonoBehaviour
     void Update()
     {
 
+        //Only allow Projectile Outside the maze
+        if(!(GameFlowManager.Instance.GameStatus == GameFlowManager.GameStage.OutsideMaze))
+        {
+            return;
+        }
+
         // if press the left mouse, and there is still a projectile, then shoot it.
         if(Input.GetKeyDown(KeyCode.Mouse0) && CanShootProjectile)
         {

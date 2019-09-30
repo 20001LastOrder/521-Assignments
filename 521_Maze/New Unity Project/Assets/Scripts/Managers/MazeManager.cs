@@ -11,12 +11,14 @@ public class MazeManager : ManagerBase<MazeManager>
     private GameObject _mazeBoundary;
     [SerializeField]
     private GameObject _indicatorPrefab;
+    [SerializeField]
+    private GameObject _detectorPrefab;
 
     [SerializeField]
     private int _showLength = 3;
 
-    private static readonly int MAZE_LENGTH = 8;
-    private static readonly int MAX_LEVEL = 15;
+    public static readonly int MAZE_LENGTH = 8;
+    public static readonly int MAX_LEVEL = 15;
     private static readonly float MAZE_RATIO = 0.55f; 
 
     private bool[, ] _mazeRepresentations;
@@ -24,7 +26,10 @@ public class MazeManager : ManagerBase<MazeManager>
     private int _currentTime = 0;
     private List<int> _solutionPath;
     private List<Maze> _mazes;
-    private GameObject _indicator;
+    private Indicator _indicator;
+    private GameObject _detector;
+
+    public int CurrentTime => _currentTime;
 
     // Start is called before the first frame update
     void Start()
@@ -89,28 +94,31 @@ public class MazeManager : ManagerBase<MazeManager>
         }
     }
 
-    private void OpenEntrance(Tuple<int, int> indexInOriginalMaze)
+    private Tuple<int, int> OpenEntrance(Tuple<int, int> indexInOriginalMaze)
     {
+        var entranceIndex = new Tuple<int, int>(0, 0);
         // left
         if(indexInOriginalMaze.Item1 == 0)
         {
-            _mazeRepresentations[indexInOriginalMaze.Item1, indexInOriginalMaze.Item2 + 1] = false;
+            entranceIndex = new Tuple<int, int>(indexInOriginalMaze.Item1, indexInOriginalMaze.Item2 + 1);
         }
         //right
         else if(indexInOriginalMaze.Item1 == MAZE_LENGTH - 1)
         {
-            _mazeRepresentations[indexInOriginalMaze.Item1 + 2, indexInOriginalMaze.Item2 + 1] = false;
+            entranceIndex = new Tuple<int, int>(indexInOriginalMaze.Item1 + 2, indexInOriginalMaze.Item2 + 1);
         }
         //buttom
         else if (indexInOriginalMaze.Item2 == 0)
         {
-            _mazeRepresentations[indexInOriginalMaze.Item1 + 1, indexInOriginalMaze.Item2] = false;
+            entranceIndex = new Tuple<int, int>(indexInOriginalMaze.Item1 + 1, indexInOriginalMaze.Item2);
         }
         //top
         else if(indexInOriginalMaze.Item2 == MAZE_LENGTH - 1)
         {
-            _mazeRepresentations[indexInOriginalMaze.Item1 + 1, indexInOriginalMaze.Item2 + 2] = false;
+            entranceIndex = new Tuple<int, int>(indexInOriginalMaze.Item1 + 1, indexInOriginalMaze.Item2 + 2);
         }
+        _mazeRepresentations[entranceIndex.Item1, entranceIndex.Item2] = false;
+        return entranceIndex;
     }
 
     private void CreateMazeOnRepresentations(Maze maze)
@@ -172,17 +180,29 @@ public class MazeManager : ManagerBase<MazeManager>
         CreateMazeOnRepresentations(_mazes[_currentTime]);
         PrintMaze();
         //instantiate the indicator in the entrance of the maze, +1 is because of the outside boundary
-        _indicator = Instantiate(_indicatorPrefab, new Vector3(entranceIndex.Item1 + 1, 0.5f, entranceIndex.Item2 + 1), Quaternion.identity);
+        _indicator = Instantiate(_indicatorPrefab, new Vector3(entranceIndex.Item1 + 1, 0.5f, entranceIndex.Item2 + 1), Quaternion.identity).GetComponent<Indicator>();
     }
 
     public void OpenExit()
     {
         ResetMazeRepresentations();
         _currentTime = 0;
-        var entranceIndex = Maze.IdToIndex(_solutionPath[_solutionPath.Count - 1], MAZE_LENGTH);
-        OpenEntrance(entranceIndex);
+        var exitIndex = Maze.IdToIndex(_solutionPath[_solutionPath.Count - 1], MAZE_LENGTH);
+        var exitBoundaryIndex = OpenEntrance(exitIndex);
         CreateMazeOnRepresentations(_mazes[_currentTime]);
         PrintMaze();
+
+        //initialize the indicator
+        _indicator.Init(_solutionPath, exitIndex);
+
+        //init timer (+1 as timer starts from 1)
+        GameFlowManager.Instance.ResetTimer(MAX_LEVEL + 1);
+
+        //instantiate the indicator in the entrance of the maze
+        if(_detector == null)
+        {
+            _detector = Instantiate(_detectorPrefab, new Vector3(exitBoundaryIndex.Item1, 0.5f, exitBoundaryIndex.Item2), Quaternion.identity);
+        }
     }
 
     public bool CanMove(Tuple<int, int> index)
@@ -197,12 +217,24 @@ public class MazeManager : ManagerBase<MazeManager>
     }
 
     public void ForwardTime()
-    {
+    {   
+        //decrease timer
+        GameFlowManager.Instance.DecreaseTimer();
         if (_currentTime < MAX_LEVEL)
         {
             _currentTime += 1;
             CreateMazeOnRepresentations(_mazes[_currentTime]);
+            PrintMaze();
         }
-        PrintMaze();
+        else
+        {
+            GameFlowManager.Instance.GameLose();
+        }
+    }
+
+
+    public void NextGuidance(Tuple<int, int> currentPosition, Tuple<int, int> nextPosition)
+    {
+        _indicator.UpdateIndicator(currentPosition, nextPosition);
     }
 }
