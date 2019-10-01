@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Time counter for the UI to display how much time left for solving the maze
 public class TimeCounter : MonoBehaviour
 {
     [SerializeField]
@@ -18,13 +19,14 @@ public class TimeCounter : MonoBehaviour
 
     private int _currentTime;
 
-
+    // Se the gimer to a number without animaiton
     public void HardSetTimer(int time)
     {
         _timerText.text = FormatNumber(time) + CONNECTOR + FormatNumber(0);
         _currentTime = time;
     }
 
+    // Decrease the timer with an animaiton
     public IEnumerator DecreaseTimer()
     {
         _currentTime--;
@@ -38,6 +40,8 @@ public class TimeCounter : MonoBehaviour
         }
         _timerText.text = FormatNumber(_currentTime) + CONNECTOR + FormatNumber(0);
     }
+
+    // Format number with two digits
     private string FormatNumber(int num)
     {
         return num.ToString("D2");

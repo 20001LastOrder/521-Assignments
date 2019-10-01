@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//Create maze with some reserved part (keeping empty)
 public class Maze
 {
     // provide movement in the maze
@@ -39,7 +40,7 @@ public class Maze
     }
 
     /*
-     * Build up the maze using Wilson's Algorithm
+     * Build up the maze using (Modified) Wilson's Algorithm
      */
     private void BuildMaze(float mazeRatio)
     {
@@ -138,6 +139,7 @@ public class Maze
         throw new ArgumentException("Bad Movements");
     }
 
+    // check the possible movements by the place of the grid in the maze
     public static List<char> PossibleMovements(Tuple<int, int> index, int mazeSize)
     {
         List<char> movements = new List<char>(new char[] { 'W', 'S', 'N', 'E' });
@@ -169,6 +171,7 @@ public class Maze
         return movements;
     }
 
+    // Find neightbours given a grid id 
     public static List<int> FindNeighbours(int id, int mazeSize)
     {
         List<int> neighbours = new List<int>();
@@ -200,6 +203,7 @@ public class Maze
         return neighbours;
     }
 
+    // At the beginning, initialize all the maze cells to tree
     public static MazeCell[, ] InitializeMazeCells(int mazeSize)
     {
         var mazeCells = new MazeCell[mazeSize, mazeSize];

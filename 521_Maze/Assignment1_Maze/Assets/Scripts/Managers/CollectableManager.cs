@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+ * Manager for collectables
+ */
 public class CollectableManager : ManagerBase<CollectableManager>
 {
     [SerializeField]
@@ -22,6 +25,8 @@ public class CollectableManager : ManagerBase<CollectableManager>
     {
         _collectableInScene = _collectableQuantity;
         var r = new System.Random();
+
+        //create the collectables
         for(var i = 0; i < _collectableQuantity; i++)
         {
             var parentIndex = r.Next(_collectableParents.Count);
@@ -34,6 +39,7 @@ public class CollectableManager : ManagerBase<CollectableManager>
         }
     }
 
+    // destroy collectable, upon the last collectable is destroyed, create the key
     private void CollectableDestroyed(GameObject colletable)
     {
         _collectableInScene--;

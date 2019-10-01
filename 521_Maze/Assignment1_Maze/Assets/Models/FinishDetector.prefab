@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 290445352146959784}
   - component: {fileID: 290445352146959799}
   - component: {fileID: 290445352146959787}
-  m_Layer: 1
+  - component: {fileID: 1802272687}
+  m_Layer: 0
   m_Name: FinishDetector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -106,3 +107,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerLayer: 9
+--- !u!122 &1802272687
+Halo:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 290445352146959798}
+  m_Enabled: 1
+  m_Color:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_Size: 0.5

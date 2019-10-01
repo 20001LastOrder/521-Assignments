@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Indicator for: inicate the position of the maze entrance,
+// and show player the sample solution to the maze
 public class Indicator : MonoBehaviour
 {
     [SerializeField]
@@ -42,7 +44,7 @@ public class Indicator : MonoBehaviour
         // compare with next position considering boundary
         if(nextPosition.Equals(position))
         {
-            if (_solutionPath.Count == 0) return;
+            if (_solutionPath.Count == 1) return;
             // player is on the solution path
             _solutionPath.RemoveFirst();
             var nextSoluionPosition = _solutionPath.First.Value;
@@ -53,9 +55,10 @@ public class Indicator : MonoBehaviour
             //player is not in the solution path, add currentPosition to the solution path
             // _solutionPath.AddFirst(currentPosition);
             // nextIndicatorPosition = new Vector3(currentPosition.Item1, 0.5f, currentPosition.Item2);
+
+            // if player is not in the solution path, keep it in the same position
             nextIndicatorPosition = transform.position;
         }
-
 
         transform.position = nextIndicatorPosition;
     }
@@ -72,6 +75,11 @@ public class Indicator : MonoBehaviour
         {
             GameFlowManager.Instance.EnterMaze();
         }
+        else if (GameFlowManager.Instance.GameStatus == GameFlowManager.GameStage.InMaze && _solutionPath.Count == 0)
+        {
+            Destroy(this.gameObject);
+        }
     }
-
 }
+
+

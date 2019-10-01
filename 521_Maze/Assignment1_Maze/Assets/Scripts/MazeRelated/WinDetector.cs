@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Detector to triger the game win
+// Place at the exit of the maze
 public class WinDetector : MonoBehaviour
 {
     [SerializeField]

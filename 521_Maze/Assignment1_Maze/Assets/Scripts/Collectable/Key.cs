@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Key : CollectableBase
+// Key for opening the maze entrance
+public class Key : MonoBehaviour
 {
     [SerializeField]
     private int _playerLayer = 9;

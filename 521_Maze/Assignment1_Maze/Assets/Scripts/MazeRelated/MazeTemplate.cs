@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Maze Template for creating a random solution for a maze to build on
 public class MazeTemplate
 {
     private readonly MazeCell[,] _cells;
@@ -27,8 +28,7 @@ public class MazeTemplate
         _cells = Maze.InitializeMazeCells(mazeLength);
     }
 
-
-
+    // Create a path from boundary to boundary using random walk
     public List<int> CeatePath(int minLength, int maxLength)
     {
 
@@ -91,7 +91,7 @@ public class MazeTemplate
                 continue;
             }
             //if the path is larger than the maximum length we want
-            else if(_path.Count >= maxLength)
+            else if(_path.Count > maxLength)
             {
                 // randomly remove the last several path
                 int numberToRemove = r.Next(maxLength);

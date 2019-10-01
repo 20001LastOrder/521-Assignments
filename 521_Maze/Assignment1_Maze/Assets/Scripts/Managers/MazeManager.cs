@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Manager for maze creation and flow
 public class MazeManager : ManagerBase<MazeManager>
 {
     [SerializeField]
@@ -14,6 +15,7 @@ public class MazeManager : ManagerBase<MazeManager>
     [SerializeField]
     private GameObject _detectorPrefab;
 
+    // the maximum solution length that must be reserved a time.
     [SerializeField]
     private int _showLength = 3;
 
@@ -23,45 +25,48 @@ public class MazeManager : ManagerBase<MazeManager>
 
     private bool[, ] _mazeRepresentations;
     private GameObject[,] _mazeWalls;
-    private int _currentTime = 0;
     private List<int> _solutionPath;
     private List<Maze> _mazes;
     private Indicator _indicator;
     private GameObject _detector;
 
+    private int _currentTime = 0;
     public int CurrentTime => _currentTime;
 
-    // Start is called before the first frame update
     void Start()
     {
+        // the maze is surrounded by a boundary (in total 9 * 9)
         _mazeRepresentations = new bool[MAZE_LENGTH + 2, MAZE_LENGTH + 2];
         _mazes = new List<Maze>();
         _mazeWalls = new GameObject[MAZE_LENGTH + 2, MAZE_LENGTH + 2];
+        
         // create maze path template
         MazeTemplate m = new MazeTemplate(MAZE_LENGTH);
-        m.CeatePath(14, 16);
+
+        // draw a path
+        var random = new System.Random();
+        var pathLength = random.Next(13, 16);
+
+        m.CeatePath(pathLength, pathLength);
         _solutionPath = m.Path;
 
+        //create maze for each time dimension
         for (var i = 0; i < 16; i++)
         {
             // for each time dimension, show _showLength part of the actual solution
             var min = (i + _showLength) > m.Path.Count ? Math.Max(m.Path.Count - _showLength, 0) : i;
-            var max = (i + _showLength) > m.Path.Count ? m.Path.Count : i + _showLength;
-            Debug.Log(min);
-            Debug.Log(m.Path.Count);
             Maze maze = new Maze(MAZE_LENGTH, m.Path.GetRange(min, _showLength), MAZE_RATIO);
             _mazes.Add(maze);
         }
 
         ResetMazeRepresentations();
         CreateMazeOnRepresentations(_mazes[0]);
-        PrintMaze();
+        CreateMaze();
     }
 
-
-    // Update is called once per frame
     void Update()
     {
+        // For debug, manually change the maze level
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (_currentTime < MAX_LEVEL)
@@ -69,7 +74,7 @@ public class MazeManager : ManagerBase<MazeManager>
                 _currentTime += 1;
                 CreateMazeOnRepresentations(_mazes[_currentTime]);
             }
-            PrintMaze();
+            CreateMaze();
         }
 
         if (Input.GetKeyDown(KeyCode.DownArrow))
@@ -79,7 +84,7 @@ public class MazeManager : ManagerBase<MazeManager>
                 _currentTime -= 1;
                 CreateMazeOnRepresentations(_mazes[_currentTime]);
             }
-            PrintMaze();
+            CreateMaze();
         }
     }
 
@@ -94,6 +99,7 @@ public class MazeManager : ManagerBase<MazeManager>
         }
     }
 
+    // Open an entrance at the boundary of the maze
     private Tuple<int, int> OpenEntrance(Tuple<int, int> indexInOriginalMaze)
     {
         var entranceIndex = new Tuple<int, int>(0, 0);
@@ -121,6 +127,7 @@ public class MazeManager : ManagerBase<MazeManager>
         return entranceIndex;
     }
 
+    // Create actual maze representation
     private void CreateMazeOnRepresentations(Maze maze)
     {
         var cells = maze.Cells;
@@ -140,7 +147,8 @@ public class MazeManager : ManagerBase<MazeManager>
         }
     }
 
-    private void PrintMaze()
+    // create maze in the actual game
+    private void CreateMaze()
     {
         var mazeLength = _mazeRepresentations.GetLength(0);
         var boundaries = new HashSet<int>(Maze.FindBoundaryIds(mazeLength));
@@ -171,6 +179,7 @@ public class MazeManager : ManagerBase<MazeManager>
         }
     }
 
+    // Open the entrance to the maze
     public void OpenEntranceToTheMaze()
     {
         ResetMazeRepresentations();
@@ -178,7 +187,7 @@ public class MazeManager : ManagerBase<MazeManager>
         var entranceIndex = Maze.IdToIndex(_solutionPath[0], MAZE_LENGTH);
         OpenEntrance(entranceIndex);
         CreateMazeOnRepresentations(_mazes[_currentTime]);
-        PrintMaze();
+        CreateMaze();
         //instantiate the indicator in the entrance of the maze, +1 is because of the outside boundary
         _indicator = Instantiate(_indicatorPrefab, new Vector3(entranceIndex.Item1 + 1, 0.5f, entranceIndex.Item2 + 1), Quaternion.identity).GetComponent<Indicator>();
     }
@@ -190,32 +199,35 @@ public class MazeManager : ManagerBase<MazeManager>
         var exitIndex = Maze.IdToIndex(_solutionPath[_solutionPath.Count - 1], MAZE_LENGTH);
         var exitBoundaryIndex = OpenEntrance(exitIndex);
         CreateMazeOnRepresentations(_mazes[_currentTime]);
-        PrintMaze();
+        CreateMaze();
 
         //initialize the indicator
-        _indicator.Init(_solutionPath, exitIndex);
+        _indicator.Init(_solutionPath, exitBoundaryIndex);
 
         //init timer (+1 as timer starts from 1)
         GameFlowManager.Instance.ResetTimer(MAX_LEVEL + 1);
 
-        //instantiate the indicator in the entrance of the maze
+        //instantiate the win game detector a the boundary exit of the maze
         if(_detector == null)
         {
             _detector = Instantiate(_detectorPrefab, new Vector3(exitBoundaryIndex.Item1, 0.5f, exitBoundaryIndex.Item2), Quaternion.identity);
         }
     }
 
+    // Check if a grid is empty or a tree
     public bool CanMove(Tuple<int, int> index)
     {
         return !_mazeRepresentations[index.Item1, index.Item2];
     }
 
+    // get the index of the entrance
     public Tuple<int, int> EntranceIndex()
     {
         var index = Maze.IdToIndex(_solutionPath[0],MAZE_LENGTH);
         return new Tuple<int, int>(index.Item1 + 1, index.Item2 + 1);
     }
 
+    // forward maze in time dimension
     public void ForwardTime()
     {   
         //decrease timer
@@ -224,15 +236,15 @@ public class MazeManager : ManagerBase<MazeManager>
         {
             _currentTime += 1;
             CreateMazeOnRepresentations(_mazes[_currentTime]);
-            PrintMaze();
+            CreateMaze();
         }
-        else
+        else if(GameFlowManager.Instance.GameStatus != GameFlowManager.GameStage.GameFinished)
         {
-            GameFlowManager.Instance.GameLose();
+            GameFlowManager.Instance.ResetMaze();
         }
     }
 
-
+    // show the next solution guidance for the Maze
     public void NextGuidance(Tuple<int, int> currentPosition, Tuple<int, int> nextPosition)
     {
         _indicator.UpdateIndicator(currentPosition, nextPosition);

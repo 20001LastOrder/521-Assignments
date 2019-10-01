@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Controller for control the player
 public class FirstPersonController : MonoBehaviour
 {
     [SerializeField]
@@ -26,13 +27,10 @@ public class FirstPersonController : MonoBehaviour
     private float y_rotation = 180f;
     private bool _isJumping = false;
     private bool _isMoving = false;
-    private void Start()
-    {
-
-    }
 
     private void Update()
     {
+        // only let player move at certain state
         if (GameFlowManager.Instance.GameStatus == GameFlowManager.GameStage.GameFinished)
         {
             return;
@@ -131,19 +129,40 @@ public class FirstPersonController : MonoBehaviour
         {
             return;
         }
-        
-        if(Input.GetKey(KeyCode.W))
-        {
 
+        // use WSAD to control the grid move
+        if(Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
+        {
+            var moveDirection = transform.forward;
+            string key = Input.inputString;
+            if (key.Equals("A") || key.Equals("a"))
+            {
+                var z = moveDirection.z;
+                moveDirection.z = moveDirection.x;
+                moveDirection.x = -z;
+            }else if (key.Equals("S") || key.Equals("s"))
+            {
+                moveDirection.x = -moveDirection.x;
+                moveDirection.z = -moveDirection.z;
+
+            }
+            else if (key.Equals("D") || key.Equals("d"))
+            {
+                var z = moveDirection.z;
+                moveDirection.z = -moveDirection.x;
+                moveDirection.x = z;
+            }
+
+            Debug.Log(moveDirection);
             //Check the next direction to move based on current forward direction
             var currentCoord = new Tuple<int, int>((int)Math.Round(this.transform.position.x), (int)Math.Round(this.transform.position.z));
             Vector3 desiredPosition;
-            if(Math.Abs(transform.forward.z) > Math.Abs(transform.forward.x)){
-                desiredPosition = new Vector3(this.transform.position.x, this.transform.position.y, currentCoord.Item2 + Math.Sign(transform.forward.z));
+            if(Math.Abs(moveDirection.z) > Math.Abs(moveDirection.x)){
+                desiredPosition = new Vector3(this.transform.position.x, this.transform.position.y, currentCoord.Item2 + Math.Sign(moveDirection.z));
             }
             else
             {
-                desiredPosition = new Vector3(currentCoord.Item1 + Math.Sign(transform.forward.x), this.transform.position.y, this.transform.position.z);
+                desiredPosition = new Vector3(currentCoord.Item1 + Math.Sign(moveDirection.x), this.transform.position.y, this.transform.position.z);
             }
 
             var coord = new Tuple<int, int>((int)Math.Round(desiredPosition.x), (int)Math.Round(desiredPosition.z));
@@ -170,7 +189,6 @@ public class FirstPersonController : MonoBehaviour
 
     private IEnumerator GridMove(Vector3 direction, Vector3 desiredPosition)
     {
-        Debug.Log(_gridMovementSpeed);
         // 0.01 for numerical issue
         while(Vector3.Distance(transform.position, desiredPosition) > 0.1f)
         {
@@ -191,11 +209,18 @@ public class FirstPersonController : MonoBehaviour
         _isMoving = false;
     }
 
+    // reset everything for the player
     public void ResetPlayer()
     {
         _isJumping = false;
         _isMoving = false;
         GetComponent<Rigidbody>().useGravity = true;
         this.StopAllCoroutines();
+    }
+
+    public void frozenPlayer()
+    {
+        _gridMovementSpeed = 0;
+        _speed = 0;
     }
 }
