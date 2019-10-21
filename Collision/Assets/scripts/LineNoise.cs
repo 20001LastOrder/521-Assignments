@@ -55,10 +55,10 @@ public class LineNoise : MonoBehaviour
 
         //create perlin noise
         PerlinNoiseGenerator generator = new PerlinNoiseGenerator(Utils.RandomInt(), noiseLength, 8, 0, 0.5f);
-        drawPillar(generator, stoneBottomPoints, leftPillarLeft, -1);
-        drawPillar(generator, stoneBottomPoints, leftPillarRight, 1);
-        drawPillar(generator, stoneBottomPoints, rightPillarLeft, -1);
-        drawPillar(generator, stoneBottomPoints, rightPillarRight, 1);
+        DrawPillar(generator, stoneBottomPoints, leftPillarLeft, -1);
+        DrawPillar(generator, stoneBottomPoints, leftPillarRight, 1);
+        DrawPillar(generator, stoneBottomPoints, rightPillarLeft, -1);
+        DrawPillar(generator, stoneBottomPoints, rightPillarRight, 1);
         List<Vector3> approximators = new List<Vector3>();
         approximator.positionCount = 13;
 
@@ -108,7 +108,7 @@ public class LineNoise : MonoBehaviour
 
     }
 
-    private void drawPillar(PerlinNoiseGenerator g, List<Vector3> stoneBottomPoints, LineRenderer pillar, int noiseDirection)
+    private void DrawPillar(PerlinNoiseGenerator g, List<Vector3> stoneBottomPoints, LineRenderer pillar, int noiseDirection)
     {
         var pillarTop = pillar.transform.localPosition;
         for (var i = 0; i < stoneBottomPoints.Count; i++)
@@ -132,10 +132,11 @@ public class LineNoise : MonoBehaviour
 
     private List<Vector3> CreateStone()
     {
-        PerlinNoiseGenerator generator = new PerlinNoiseGenerator(Utils.RandomInt(), noiseLength * 4, 8, 0, 1);
+        PerlinNoiseGenerator generator = new PerlinNoiseGenerator(Utils.RandomInt(), noiseLength * 4, 8, 0, 1, 2, 24);
 
         var positions = new List<Vector3>();
-        positions.AddRange(HorizontalNoise(generator, 0, topStone.GetPosition(0), numPointsWidth, modifyScale, 1, 1));
+        var start = topStone.GetPosition(0);
+        positions.AddRange(HorizontalNoise(generator, 0, start, numPointsWidth, modifyScale, 1, 1));
         positions.AddRange(VerticalNoise(generator, noiseLength, positions[positions.Count - 1], numPointsHeight, height, modifyScale, -1, 1));
         positions.AddRange(HorizontalNoise(generator, 2 * noiseLength, positions[positions.Count - 1], numPointsWidth, modifyScale, -1, -1));
         var newHeight = Mathf.Abs(positions[positions.Count - 1].y - topStone.GetPosition(0).y);

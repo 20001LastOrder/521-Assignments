@@ -89,7 +89,7 @@ public class GhostManager : ManagerBase<GhostManager>
             var next = (i + 1) % transformsOfGhost.Count;
             if (EnvironmentManager.Instance.LinePointCollisionDetection(transformsOfGhost[i].CurrentPosition, transformsOfGhost[next].CurrentPosition, position, radius)){
                 // TODO: change Ghost behaviour
-                var acc = velocity;
+                var acc = velocity / Time.deltaTime / 2;
                 transformsOfGhost[i].AddInstantaneousAcc(acc);
                 transformsOfGhost[next].AddInstantaneousAcc(acc);
 

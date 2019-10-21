@@ -39,7 +39,9 @@ public class Ghost : MonoBehaviour
 
     public VerletPoint RightEye => rightEyePoint;
 
-    private Vector3 respawnThreshold;
+    private Vector3 respawnThresholdTop;
+
+    private Vector3 respawnThresholdButtom;
 
     private List<Constraint> constraints;
 
@@ -67,8 +69,8 @@ public class Ghost : MonoBehaviour
         AddAcc(initialAcc / Time.deltaTime);
 
         // get respawn threshold
-        respawnThreshold = EnvironmentManager.Instance.UpperRightCorner;
-
+        respawnThresholdTop = EnvironmentManager.Instance.UpperRightCorner;
+        respawnThresholdButtom = EnvironmentManager.Instance.LowerLeftCorner;
         //load constraints
         constraints = new List<Constraint>();
         constraints.Add(new PointwiseConstraint(this, 5));
@@ -113,7 +115,7 @@ public class Ghost : MonoBehaviour
 
         constraints.ForEach(c =>
         {
-            c.ResolveConstriant(this, 0.0001f);
+            c.ResolveConstriant(this, 0.2f);
         });
 
         for (var i = 0; i < points.Count; i++)
@@ -124,7 +126,8 @@ public class Ghost : MonoBehaviour
 
     private void CheckDestroy()
     {
-        if(rightEyePoint.CurrentPosition.y > respawnThreshold.y + 1 || rightEyePoint.CurrentPosition.x > respawnThreshold.x + 1)
+        if(rightEyePoint.CurrentPosition.y > respawnThresholdTop.y + 1 || rightEyePoint.CurrentPosition.x > respawnThresholdTop.x + 1 ||
+            rightEyePoint.CurrentPosition.y < respawnThresholdButtom.y - 1 || rightEyePoint.CurrentPosition.x < respawnThresholdButtom.x - 1)
         {
             OnDestroy.Invoke(this);
             Destroy(this.gameObject);

@@ -20,14 +20,20 @@ public class PointwiseConstraint : Constraint
             for (var i = 0; i < ghost.Points.Count - 1; i++)
             {
                 var distanceToOtherPoints = distances[i];
-                for(var j = i + 1; j < ghost.Points.Count; j++)
+                for(var j = i + 1; j < System.Math.Min(i + 2, ghost.Points.Count); j++)
                 {
                     var distance = Vector3.Distance(ghost.Points[i].CurrentPosition, ghost.Points[j].CurrentPosition);
                     var direction = (ghost.Points[j].CurrentPosition - ghost.Points[i].CurrentPosition).normalized;
                     var changement = (distance - distanceToOtherPoints[j - i - 1]) * fixFactor / 2;
-
+                    
                     // resolve constraints
                     ghost.Points[i].AddPosition(changement * direction);
+                    if (ghost.Points[i].CheckCollision())
+                    {
+                        ghost.Points[i].AddPosition(-changement * direction);
+                        changement *= 2;
+                    }
+
                     changement *= -1;
                     ghost.Points[j].AddPosition(changement * direction);
                 }
@@ -43,7 +49,7 @@ public class PointwiseConstraint : Constraint
         {
             var distancesToOtherPoints = new List<float>();
 
-            for(var j = i + 1; j < ghost.Points.Count; j++)
+            for(var j = i + 1; j < System.Math.Min(i+2, ghost.Points.Count); j++)
             {
                 distancesToOtherPoints.Add(Vector3.Distance(ghost.Points[i].CurrentPosition, ghost.Points[j].CurrentPosition));
             }

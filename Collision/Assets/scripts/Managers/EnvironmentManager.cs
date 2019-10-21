@@ -144,4 +144,26 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
 
         return true;
     }
+
+    public bool InBadArea(Vector3 position, float radius)
+    {
+        if(position.y <= groundLevel)
+        {
+            return true;
+        }
+        else
+        {
+            var linePoints = colliders[0];
+            for (var i = 0; i < linePoints.Count - 1; i++)
+            {
+                //CollisionToCollider(linePoints[i], linePoints[i + 1]);
+                if (EnvironmentManager.Instance.LinePointCollisionDetection(linePoints[i], linePoints[i + 1], position, radius))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }
