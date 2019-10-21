@@ -9,34 +9,95 @@ public class GhostManager : ManagerBase<GhostManager>
     private GameObject ghostPrefab;
 
     [SerializeField]
-    private Vector3 spawnButtomLeft;
-
-    [SerializeField]
-    private Vector3 spawnTopRight;
+    private List<Transform> ghostSpawnPoints;
 
     [SerializeField]
     private int numGhost = 4;
 
+    [SerializeField]
+    private float ghostChangeMovementHeight = 2;
+
+    private List<Ghost> ghosts;
+
+    private System.Random r = new System.Random();
+
+    public float GhostChangeMovementHeight => ghostChangeMovementHeight;
+
+
+
     // Start is called before the first frame update
     void Start()
     {
-        for(var i = 0; i < numGhost; i++)
+        ghosts = new List<Ghost>();
+
+        var ghostParents = new List<Transform>(ghostSpawnPoints);
+
+        for (var i = 0; i < numGhost; i++)
         {
-            CreateGhost();
+            // draw next position 
+            var parentIndex = r.Next(ghostParents.Count);
+            CreateGhost(ghostParents[parentIndex]);
+
+            //remove to avoid repetitive positions
+            ghostParents.RemoveAt(parentIndex);
         }
     }
 
-    private void CreateGhost()
+    private void RespawnGhost(Ghost g)
     {
-        var spawnPosition = GetRandomSpawnLocation();
-        Instantiate(ghostPrefab, spawnPosition, Quaternion.identity);
+        ghosts.Remove(g);
+
+        var parentIndex = r.Next(ghostSpawnPoints.Count);
+        CreateGhost(ghostSpawnPoints[parentIndex]);
     }
 
-    private Vector3 GetRandomSpawnLocation()
+    private void CreateGhost(Transform parent)
     {
-        var width = spawnTopRight.x - spawnButtomLeft.x;
-        var height = spawnTopRight.y - spawnButtomLeft.y;
+        var ghost = Instantiate(ghostPrefab, parent).GetComponent<Ghost>();
+        ghost.transform.parent = null;
+        ghost.OnDestroy += RespawnGhost;
+        ghosts.Add(ghost);
+    }
 
-        return new Vector3(spawnButtomLeft.x + width * Utils.RandomFloat(), spawnButtomLeft.y + height * Utils.RandomFloat());
+    public bool DoesCollideWithGhosts(Vector3 position, Vector3 velocity, float radius)
+    {
+        var hasCollision = false;
+
+        foreach (var ghost in ghosts)
+        {
+            if(ghost != null)
+            {
+                hasCollision = hasCollision || CollisionWithSingleGhost(position, velocity, radius, ghost);
+            }
+        }
+
+        return hasCollision;
+    }
+
+    private bool CollisionWithSingleGhost(Vector3 position, Vector3 velocity, float radius, Ghost ghost)
+    {
+        var transformsOfGhost = ghost.Points;
+
+        // if there are no points, no collision (might happen when the ghost is being destroyed)
+        if(transformsOfGhost == null)
+        {
+            return false;
+        }
+
+        for(var i = 0; i < transformsOfGhost.Count; i++)
+        {
+            var next = (i + 1) % transformsOfGhost.Count;
+            if (EnvironmentManager.Instance.LinePointCollisionDetection(transformsOfGhost[i].CurrentPosition, transformsOfGhost[next].CurrentPosition, position, radius)){
+                // TODO: change Ghost behaviour
+                var acc = velocity;
+                transformsOfGhost[i].AddInstantaneousAcc(acc);
+                transformsOfGhost[next].AddInstantaneousAcc(acc);
+
+                return true;
+            }
+
+        }
+
+        return false;
     }
 }

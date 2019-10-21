@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
+    [SerializeField]
+    private float restDestroySeconds = 3;
+
     private Vector3 velocity;
     private float secondTimer = 0;
     private float radius;
@@ -21,8 +24,6 @@ public class Projectile : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        CheckForDestroy();
-
         lastFramePosition = transform.position;
         //apply position update
         UpdatePosition();
@@ -33,6 +34,7 @@ public class Projectile : MonoBehaviour
             velocity += EnvironmentManager.Instance.GravityAcc * Time.deltaTime;
         }
 
+        CheckForDestroy();
     }
 
     public bool CheckCollision()
@@ -85,8 +87,9 @@ public class Projectile : MonoBehaviour
             Destroy(this.gameObject);
         }
 
+        // Destroy if it has been rest for 3 seconds
         secondTimer += Time.deltaTime;
-        if(secondTimer > 3)
+        if(secondTimer > restDestroySeconds)
         {
             if((transform.position - lastSecondPosition).magnitude < 0.1f)
             {
@@ -98,6 +101,12 @@ public class Projectile : MonoBehaviour
                 secondTimer = 0;
             }
         }
-        
+
+        //Destroy if it collides with a ghost
+        if (GhostManager.Instance.DoesCollideWithGhosts(transform.position, velocity, radius))
+        {
+            Destroy(this.gameObject);
+        }
+
     }
 }

@@ -19,6 +19,12 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
     [SerializeField]
     private float colliderRestitutionCoef = 0.6f;
 
+    [SerializeField]
+    private Vector3 upperRightCorner;
+
+    [SerializeField]
+    private Vector3 lowerLeftCorner;
+
     private Vector3 windStrength;
 
     private float groundLevel;
@@ -41,6 +47,11 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
     public List<List<Vector3>> Colliders => colliders;
 
     public float ColliderRestitutionCoef => colliderRestitutionCoef;
+
+    public Vector3 UpperRightCorner => upperRightCorner;
+
+    public Vector3 LowerLeftCorner => lowerLeftCorner;
+
 
     void Start()
     {
