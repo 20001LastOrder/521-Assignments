@@ -35,7 +35,7 @@ public class Trader : SpiceTransferPoint
         _text.text = text;
     }
 
-    public string GetName => _text.text;
+    public string Name => _text.text;
 
     public SpiceVector RequiredSpices()
     {

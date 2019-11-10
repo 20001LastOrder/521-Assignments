@@ -11,7 +11,7 @@ public class TakeAction : Action
         _p = p;
         Name = name;
         _deal = deal;
-        Cost = 2;
+        Cost = 1;
     }
 
     public override WorldState Effect(WorldState s)

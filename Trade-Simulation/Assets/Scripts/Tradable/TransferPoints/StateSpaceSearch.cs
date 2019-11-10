@@ -39,7 +39,7 @@ public class StateSpaceSearch
                     var nextState = action.Effect(state);
                     nextState.LastAction = action;
                     nextState.PreviousState = state;
-                   // nextState.steps = state.steps + action.Cost;
+                    nextState.steps = state.steps + action.Cost;
 
                     if (nextState.Reaches(_goalState))
                     {

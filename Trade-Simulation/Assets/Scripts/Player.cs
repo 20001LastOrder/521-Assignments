@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using System.Linq;
 
 public class Player : Actor
 {
@@ -10,6 +11,9 @@ public class Player : Actor
 
     [SerializeField]
     public SpiceVector _goalVector;
+
+	[SerializeField]
+	private int _numFutureActionLog = 3;
 
     private int i = -1;
     private Stack<Action> _plan;
@@ -40,7 +44,7 @@ public class Player : Actor
         _goalState = new WorldState(_goalVector, null);
 
         //initial logging
-        UIManager.Instance.LogInventory(_playerState.PlayerStorage, _playerState.CaravanStorage);
+        UIManager.Instance.LogStateInventory(_playerState.PlayerStorage, _playerState.CaravanStorage);
     }
 
     // Update is called once per frame
@@ -48,37 +52,52 @@ public class Player : Actor
     {
        if(Status == ActorState.Idle && _plan.Count > 0)
         {
-           UIManager.Instance.LogInventory(_playerState.PlayerStorage, _playerState.CaravanStorage); 
+           UIManager.Instance.LogStateInventory(_playerState.PlayerStorage, _playerState.CaravanStorage); 
            var action = _plan.Pop();
 
-            if (action.PreCondition(_playerState))
-            {
-                StartCoroutine(ActionWithLogging(action));
-            }
-            else
-            {
-                _plan = new Stack<Action>();
-            }
-
+			if (action.PreCondition(_playerState))
+			{
+				// log three actions beyond
+				if(_numFutureActionLog - 1 < _plan.Count) {
+					UIManager.Instance.LogPlayerAction(_plan.ElementAt(_numFutureActionLog - 1).Name);
+				} else {
+					UIManager.Instance.LogPlayerAction("Found Goal, Idle");
+				}
+				StartCoroutine(ActionWithLogging(action));
+			}
+			else
+			{
+				_plan = new Stack<Action>();
+			}
         }
         else if(_plan.Count == 0 && Status == ActorState.Idle)
         {
             if (_playerState.Reaches(_goalState))
             {
-                Status = ActorState.FindGoal;
+				UIManager.Instance.LogPlayerAction("Found Goal, Idle");
+				Status = ActorState.FindGoal;
             }
             else
             {
+				UIManager.Instance.LogPlayerAction("Request New Plan...");
                _plan = PlayerPlanningManager.Instance.RequestPlan(_playerState, _goalState);
-                Debug.Log(_plan.Count);
-            }
-        }
+				UIManager.Instance.LogPlayerAction("Find Plan with " + _plan.Count + " steps");
+				Debug.Log("Find Plan with " + _plan.Count + " steps");
+				//One empty Action log for formatting
+				UIManager.Instance.LogPlayerAction("");
+
+				//log the first 3 actions
+				for(var i = 0; i < 3; i++) {
+					UIManager.Instance.LogPlayerAction(_plan.ElementAt(i).Name);
+				}
+			}
+		}
     }
 
     public IEnumerator ActionWithLogging(Action action)
     {
         yield return action.Operator(_playerState, this);
-        UIManager.Instance.LogInventory(_playerState.PlayerStorage, _playerState.CaravanStorage);
+        UIManager.Instance.LogStateInventory(_playerState.PlayerStorage, _playerState.CaravanStorage);
     }
 
     public void BeginProcessAction()

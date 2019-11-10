@@ -10,7 +10,7 @@ public class PutAction : Action
     {
         _p = p;
         Name = name;
-        Cost = 10;
+        Cost = 1;
     }
 
     public override WorldState Effect(WorldState s)

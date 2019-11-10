@@ -33,7 +33,7 @@ public class PlayerPlanningManager : ManagerBase<PlayerPlanningManager>
     {
         for(var i = 0; i < _traders.Count; i++)
         {
-            _actions.Add(new ExchangeAction(_traders[i], string.Format("trader {0} trade action", _traders[i].GetName)));
+            _actions.Add(new ExchangeAction(_traders[i], string.Format("trade with trader {0}", _traders[i].Name)));
         }
     }
 
@@ -44,21 +44,21 @@ public class PlayerPlanningManager : ManagerBase<PlayerPlanningManager>
             var deal = _traders[i].RequiredSpices();
             if(deal.Sum() > 0)
             {
-                _actions.Add(new TakeAction(_caravan, "caravan take for trader " + _traders[i].name, deal));
+                _actions.Add(new TakeAction(_caravan, "take items for trader " + _traders[i].Name, deal));
             }
         }
         var additionDeal = new SpiceVector();
         additionDeal.Spices[0] += 1;
         _actions.Add(new TakeAction(_caravan, "caravan take for single " + SpiceVector.SpiceNames[0], additionDeal));
-        _actions.Add(new PutAction(_caravan, string.Format("put action", name)));
+        _actions.Add(new PutAction(_caravan, "put everything to cavaran"));
     }
 
     private int Heuristic(WorldState state1, WorldState state2)
     {
         int distance = 0;
-        int[] cost = { 1, 3, 7, 5, 9, 11, 29};
-        //weight the items after more than items before 
-        for(var i = 0; i < state1.CaravanStorage.Spices.Count; i++)
+		int[] cost = { 1, 3, 7, 5, 9, 11, 29};
+		//weight the items after more than items before 
+		for (var i = 0; i < state1.CaravanStorage.Spices.Count; i++)
         {
             distance += cost[i] * System.Math.Abs(state1.PlayerStorage.Spices[i] + state1.CaravanStorage.Spices[i] - state2.CaravanStorage.Spices[i]);
         }

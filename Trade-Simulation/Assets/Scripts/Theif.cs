@@ -22,11 +22,13 @@ public class Theif : Actor
 
 
     private System.Random _numberGenerator;
+
     protected override void Start()
     {
         base.Start();
         _numberGenerator = new System.Random();
         _inventory = new SpiceVector();
+		UIManager.Instance.LogThiefInventory(_inventory);
     }
 
     void Update()
@@ -42,22 +44,33 @@ public class Theif : Actor
         if (timeCounter > 5)
         {
             timeCounter = 0;
-            var draw = _numberGenerator.NextDouble();
-               
-            if (successTimes < 2 && draw <= 0.166f )
+			if (successTimes >= 2) {
+				return;
+			}
+
+			var draw = _numberGenerator.NextDouble();
+			if (draw <= 0.166)
             {
-                StartCoroutine(TakeRandomSpiceAndTakeRandomSpice());
+				_isInSpecialAction = true;
+				UIManager.Instance.LogThiefAction("Toss " + draw.ToString("0.0000") + " steal in cavaran");
+				StartCoroutine(GoToCaravanAndTakeRandomSpice());
             }else if(successTimes < 2 && draw > 0.166 && draw <= 0.33)
             {
-                StartCoroutine(ReachPlayerAndTakeRandomSpice());
-            }
+				_isInSpecialAction = true;
+				UIManager.Instance.LogThiefAction("Toss " + draw.ToString("0.0000") + " steal from player");
+				StartCoroutine(ReachPlayerAndTakeRandomSpice());
+			} else{
+				UIManager.Instance.LogThiefAction("Toss " + draw.ToString("0.0000") + " do nothing");
+			}
         }
 
         if (Status == ActorState.Idle)
         {
-            StartCoroutine(GoToRandomWayPoint());
-        }
-    }
+			Status = ActorState.Processing;
+			StartCoroutine(GoToRandomWayPoint());
+			UIManager.Instance.LogThiefAction("Traveling To Random Way Point");
+		}
+	}
 
     private IEnumerator GoToRandomWayPoint()
     {
@@ -68,7 +81,7 @@ public class Theif : Actor
         Status = ActorState.Idle;
     }
 
-    private IEnumerator TakeRandomSpiceAndTakeRandomSpice()
+    private IEnumerator GoToCaravanAndTakeRandomSpice()
     {
         _isInSpecialAction = true;
         //wait for idle
@@ -104,10 +117,14 @@ public class Theif : Actor
             vectorToStole.Spices[nonZeroIndexes[randomIndex]] -= 1;
             _inventory.Spices[nonZeroIndexes[randomIndex]] += 1;
             successTimes += 1;
-            Debug.Log("Get " + SpiceVector.SpiceNames[nonZeroIndexes[randomIndex]]);
-            UIManager.Instance.LogInventory(_player.PlayerState.PlayerStorage, _player.PlayerState.CaravanStorage);
-        }
-    }
+			UIManager.Instance.LogThiefInventory(_inventory);
+            UIManager.Instance.LogStateInventory(_player.PlayerState.PlayerStorage, _player.PlayerState.CaravanStorage);
+			UIManager.Instance.LogThiefAction("Get " + SpiceVector.SpiceNames[nonZeroIndexes[randomIndex]]);
+			if(successTimes >= 2) {
+				UIManager.Instance.LogThiefAction("Finish Steal Mission, YEAH!!");
+			}
+		}
+	}
 
     private IEnumerator ReachPlayerAndTakeRandomSpice()
     {
@@ -118,7 +135,6 @@ public class Theif : Actor
             yield return null;
         }
 
-
         Status = ActorState.Processing;
         StartCoroutine(FollowPlayer());
 
@@ -127,11 +143,16 @@ public class Theif : Actor
         TakeRandomSpice(_player.PlayerState.PlayerStorage);
 
         _isReachedPlayer = true;
-        _isInSpecialAction = false;
-        Status = ActorState.Idle;
-    }
 
-    private IEnumerator FollowPlayer()
+		// wait for following corouting to finish
+		while (Status != ActorState.Processing) {
+			yield return null;
+		}
+		Status = ActorState.Idle;
+		_isInSpecialAction = false;
+	}
+
+	private IEnumerator FollowPlayer()
     {
         if(Status != ActorState.Processing)
         {
@@ -147,8 +168,9 @@ public class Theif : Actor
             yield return new WaitForSeconds(0.1f);
         }
 
-        //current place is destination to stop moving
-        agent.SetDestination(transform.position);
-        Status = ActorState.Processing;
+		//current place is destination to stop moving
+		agent.isStopped = true;
+		agent.isStopped = false;
+		Status = ActorState.Processing;
     }
 }
