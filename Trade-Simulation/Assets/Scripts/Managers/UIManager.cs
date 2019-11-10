@@ -22,12 +22,27 @@ public class UIManager : ManagerBase<UIManager>
 	[SerializeField]
 	private Text _simulationSpeedText;
 
-	private Queue<string> _playerActionLogs;
+	[SerializeField]
+	private RectTransform _currentPlayerActionIndicator;
+
+	[SerializeField]
+	private Scrollbar _playerActionTextScroll;
+
+	[SerializeField]
+	private float _indicatorMove = 17;
+
+	[SerializeField]
+	private float _scrollDistance = 0.00854f;
+
+	private List<string> _playerActionLogs;
 	private Queue<string> _thiefActionLogs;
+	private Vector3 _startIndicatorPos;
 
 	private void Start() {
-		_playerActionLogs = new Queue<string>(_numberOfActionsToLog);
+		_playerActionLogs = new List<string>(_numberOfActionsToLog);
 		_thiefActionLogs = new Queue<string>(_numberOfActionsToLog);
+		_startIndicatorPos = _currentPlayerActionIndicator.localPosition;
+		Debug.Log(_startIndicatorPos);
 	}
 
 	public void LogStateInventory(SpiceVector playerInv, SpiceVector caravanInv)
@@ -48,20 +63,30 @@ public class UIManager : ManagerBase<UIManager>
 		_thiefInventoryText.text = textFormat;
 	}
 
-	public void LogPlayerAction(string action) {
-		PutActionToQueue(_playerActionLogs, action);
+	public void AddNewPlayerActoinLog(string action) {
+		_playerActionLogs.Add(action);
+	}
 
+	public void ShowPlayerActionLog() {
 		string output = "";
-		int i = 0;
-		foreach(var actionLog in _playerActionLogs) {
-			if (i == _playerActionLogs.Count / 2) {
-				output += "->" + actionLog + "\n";
-			} else {
-				output += "- " + actionLog + "\n";
-			}
-			i++;
+		foreach (var actionLog in _playerActionLogs) {
+			output += actionLog + "\n";
 		}
 		_playerActionText.text = output;
+	}
+
+	public void ClearPlayerActionLog() {
+		_playerActionLogs = new List<string>();
+		_playerActionText.text = "";
+		_currentPlayerActionIndicator.localPosition = _startIndicatorPos;
+		_playerActionTextScroll.value = 1;
+	}
+
+	public void MoveToNextPlayerAction() {
+		var position = _currentPlayerActionIndicator.localPosition;
+		position.y -= _indicatorMove;
+		_currentPlayerActionIndicator.localPosition = position;
+		_playerActionTextScroll.value -= _scrollDistance;
 	}
 
 	public void LogThiefAction(string action) {

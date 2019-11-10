@@ -23,12 +23,20 @@ public class SimulationManager : MonoBehaviour
 				SetCurrentSimulationSpeed();
 			}
 		}else if (Input.GetKeyDown(KeyCode.Equals)) {
+			if(Time.timeScale <= 0) {
+				return;
+			}
+
 			currentSimulationSpeed = Time.timeScale * 2;
 			if(currentSimulationSpeed <= _maxSimulationSpeed) {
 
 				SetCurrentSimulationSpeed();
 			}
 		} else if (Input.GetKeyDown(KeyCode.Minus)) {
+			if (Time.timeScale <= 0) {
+				return;
+			}
+
 			currentSimulationSpeed = Time.timeScale / 2;
 			if (currentSimulationSpeed >= _minSimulationSpeed) {
 				SetCurrentSimulationSpeed();

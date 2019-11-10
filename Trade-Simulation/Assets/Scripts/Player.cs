@@ -57,12 +57,8 @@ public class Player : Actor
 
 			if (action.PreCondition(_playerState))
 			{
-				// log three actions beyond
-				if(_numFutureActionLog - 1 < _plan.Count) {
-					UIManager.Instance.LogPlayerAction(_plan.ElementAt(_numFutureActionLog - 1).Name);
-				} else {
-					UIManager.Instance.LogPlayerAction("Found Goal, Idle");
-				}
+				// move indicator to the next action of the plan
+				UIManager.Instance.MoveToNextPlayerAction();
 				StartCoroutine(ActionWithLogging(action));
 			}
 			else
@@ -74,22 +70,32 @@ public class Player : Actor
         {
             if (_playerState.Reaches(_goalState))
             {
-				UIManager.Instance.LogPlayerAction("Found Goal, Idle");
+				UIManager.Instance.AddNewPlayerActoinLog("Found Goal, Idle");
+				UIManager.Instance.ShowPlayerActionLog();
+				UIManager.Instance.MoveToNextPlayerAction();
 				Status = ActorState.FindGoal;
             }
             else
             {
-				UIManager.Instance.LogPlayerAction("Request New Plan...");
+				//clear old action logs
+				UIManager.Instance.ClearPlayerActionLog();
+				UIManager.Instance.AddNewPlayerActoinLog("----------------");
+				UIManager.Instance.AddNewPlayerActoinLog("Request New Plan...");
                _plan = PlayerPlanningManager.Instance.RequestPlan(_playerState, _goalState);
-				UIManager.Instance.LogPlayerAction("Find Plan with " + _plan.Count + " steps");
-				Debug.Log("Find Plan with " + _plan.Count + " steps");
-				//One empty Action log for formatting
-				UIManager.Instance.LogPlayerAction("");
 
-				//log the first 3 actions
-				for(var i = 0; i < 3; i++) {
-					UIManager.Instance.LogPlayerAction(_plan.ElementAt(i).Name);
+				//add new action log and put indicator to that action
+				UIManager.Instance.AddNewPlayerActoinLog("Find Plan with " + _plan.Count + " steps");
+				UIManager.Instance.AddNewPlayerActoinLog("Mission Start!!!!");
+				Debug.Log("Find Plan with " + _plan.Count + " steps");
+				
+
+				//log all the actions
+				foreach (var action in _plan) {
+					UIManager.Instance.AddNewPlayerActoinLog(action.Name);
 				}
+
+				//show the player action log 
+				UIManager.Instance.ShowPlayerActionLog();
 			}
 		}
     }
