@@ -6,19 +6,19 @@ public class Cloud : MonoBehaviour
 {
     private Vector3 velocity;
 
-
-    // Start is called before the first frame update
     void Start()
     {
         velocity = new Vector3();
+
+        // Synchronize the Cloud velocity with wind velocity
         EnvironmentManager.Instance.OnWindChange += UpdateVelocity;
     }
 
-    // Update is called once per frame
     void Update()
     {
         transform.position += velocity * Time.deltaTime;
 
+        // wrapping clouds
         if(transform.position.x > EnvironmentManager.Instance.ScreenMax || transform.position.x < -EnvironmentManager.Instance.ScreenMax)
         {
             Vector3 position = transform.position;

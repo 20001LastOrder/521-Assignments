@@ -14,6 +14,9 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
     private float maxWind;
 
     [SerializeField]
+    private float windStartHeight = 0;
+
+    [SerializeField]
     private float screenMax = 12;
 
     [SerializeField]
@@ -30,7 +33,7 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
     private float groundLevel;
 
     //set it to 2 so that the wind will be initialize in the first frame
-    private float elapsedTime = 2;
+    private float elapsedSeconds = 2;
 
     public event System.Action<Vector3> OnWindChange;
 
@@ -39,6 +42,8 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
     public Vector3 GravityAcc => gravityAcc;
 
     public Vector3 WindStrength => windStrength;
+
+    public float WindStartHeight => windStartHeight;
 
     public float GroundLevel => groundLevel;
 
@@ -61,20 +66,19 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
         colliders = new List<List<Vector3>>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        elapsedTime += Time.deltaTime;
+        elapsedSeconds += Time.deltaTime;
 
         //wind change every 2 seconds
-        if(elapsedTime >= 2.0f)
+        if(elapsedSeconds >= 2.0f)
         {
             windStrength.x = Random.Range(-maxWind, maxWind);
             if(OnWindChange != null)
             {
                 OnWindChange.Invoke(windStrength);
             }
-            elapsedTime = 0;
+            elapsedSeconds = 0;
 
         }
     }
@@ -124,6 +128,7 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
         
     }
 
+    // line line intersection with method from the lecture
     public bool LineLineIntersection(Vector3 a0, Vector3 a1, Vector3 b0, Vector3 b1)
     {
         Vector3 alpha = a1 - a0;
@@ -145,7 +150,8 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
         return true;
     }
 
-    public bool InBadArea(Vector3 position, float radius)
+    // check if a (Verlet) point is in a bad place (collision or the ground)
+    public bool InBadArea(Vector3 lastPosition, Vector3 position, float radius)
     {
         if(position.y <= groundLevel)
         {
@@ -153,13 +159,15 @@ public class EnvironmentManager : ManagerBase<EnvironmentManager>
         }
         else
         {
-            var linePoints = colliders[0];
-            for (var i = 0; i < linePoints.Count - 1; i++)
+            foreach (var linePoints in colliders)
             {
-                //CollisionToCollider(linePoints[i], linePoints[i + 1]);
-                if (EnvironmentManager.Instance.LinePointCollisionDetection(linePoints[i], linePoints[i + 1], position, radius))
+                for (var i = 0; i < linePoints.Count - 1; i++)
                 {
-                    return true;
+                    //CollisionToCollider(linePoints[i], linePoints[i + 1]);
+                    if (EnvironmentManager.Instance.LineLineIntersection(linePoints[i], linePoints[i + 1], lastPosition, position))
+                    {
+                        return true;
+                    }
                 }
             }
         }

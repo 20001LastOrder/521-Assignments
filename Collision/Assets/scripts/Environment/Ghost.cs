@@ -5,6 +5,7 @@ using System;
 
 public class Ghost : MonoBehaviour
 {
+    //ghost parts
     [SerializeField]
     private LineRenderer body;
 
@@ -23,6 +24,12 @@ public class Ghost : MonoBehaviour
     [SerializeField]
     private Vector3 horizontalAcc;
 
+    [SerializeField]
+    private int constraintResolveIterationPerFrame = 1;
+
+    [SerializeField]
+    private float constraintResolveCoef = 0.05f;
+    
     private bool hasChangedVelocity = false;
 
     private List<VerletPoint> points;
@@ -31,6 +38,7 @@ public class Ghost : MonoBehaviour
 
     private VerletPoint rightEyePoint;
     
+    //action to do when the ghost is destroyed (create a new ghost)
     public event Action<Ghost> OnDestroy;
 
     public List<VerletPoint> Points => points;
@@ -48,7 +56,7 @@ public class Ghost : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //transform from local axis to world axis
+        //transform from local axis to world axis and create a set of verlet points
         points = new List<VerletPoint>();
         Vector3[] bodyPoints = new Vector3[body.positionCount];
         body.GetPositions(bodyPoints);
@@ -73,10 +81,11 @@ public class Ghost : MonoBehaviour
         respawnThresholdButtom = EnvironmentManager.Instance.LowerLeftCorner;
         //load constraints
         constraints = new List<Constraint>();
-        constraints.Add(new PointwiseConstraint(this, 5));
-        constraints.Add(new EyePointDistanceConstraint(this, 5));
+        constraints.Add(new PointwiseConstraint(this, constraintResolveIterationPerFrame));
+        constraints.Add(new EyePointDistanceConstraint(this, constraintResolveIterationPerFrame));
     }
 
+    // add instantaneous acceleration to all of the points
     private void AddAcc(Vector3 acc)
     {
         //apply initial acc
@@ -89,6 +98,7 @@ public class Ghost : MonoBehaviour
         rightEyePoint.AddInstantaneousAcc(acc);
     }
 
+    // update position for all the points
     private void UpdatePointLocation()
     {
         points.ForEach(p =>
@@ -100,7 +110,6 @@ public class Ghost : MonoBehaviour
         rightEyePoint.UpdatePosition();
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
         CheckDestroy();
@@ -113,21 +122,48 @@ public class Ghost : MonoBehaviour
 
         UpdatePointLocation();
 
+        // check and resolve constraint
         constraints.ForEach(c =>
         {
-            c.ResolveConstriant(this, 0.2f);
+            c.ResolveConstriant(this, constraintResolveCoef);
         });
 
+        CheckCollision();
+
+        //draw ghost
         for (var i = 0; i < points.Count; i++)
         {
             body.SetPosition(i, points[i].CurrentPosition);
         }
     }
 
+    // check collision for each side of the ghost
+    public void CheckCollision()
+    {
+        foreach (var linePoints in EnvironmentManager.Instance.Colliders)
+        {
+            for (var i = 0; i < linePoints.Count - 1; i++)
+            {
+                for(var j = 0; j < points.Count; j++)
+                {
+                    var next = (j + 1) % points.Count;
+                    if (EnvironmentManager.Instance.LineLineIntersection(linePoints[i], linePoints[i + 1], points[j].CurrentPosition, points[next].CurrentPosition))
+                    {
+                        //points.ForEach(p => p.ReversePosition());
+                        points[j].ReversePosition();
+                        points[next].ReversePosition();
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    // check whether the ghost should be destroyed
     private void CheckDestroy()
     {
-        if(rightEyePoint.CurrentPosition.y > respawnThresholdTop.y + 1 || rightEyePoint.CurrentPosition.x > respawnThresholdTop.x + 1 ||
-            rightEyePoint.CurrentPosition.y < respawnThresholdButtom.y - 1 || rightEyePoint.CurrentPosition.x < respawnThresholdButtom.x - 1)
+        if(rightEyePoint.CurrentPosition.y > respawnThresholdTop.y + 2 || rightEyePoint.CurrentPosition.x > respawnThresholdTop.x + 2 ||
+            rightEyePoint.CurrentPosition.y < respawnThresholdButtom.y - 2 || rightEyePoint.CurrentPosition.x < respawnThresholdButtom.x - 2)
         {
             OnDestroy.Invoke(this);
             Destroy(this.gameObject);

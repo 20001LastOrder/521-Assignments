@@ -17,15 +17,15 @@ public class GhostManager : ManagerBase<GhostManager>
     [SerializeField]
     private float ghostChangeMovementHeight = 2;
 
+    [SerializeField]
+    private float ghostMass = 2;
+
     private List<Ghost> ghosts;
 
     private System.Random r = new System.Random();
 
     public float GhostChangeMovementHeight => ghostChangeMovementHeight;
 
-
-
-    // Start is called before the first frame update
     void Start()
     {
         ghosts = new List<Ghost>();
@@ -59,6 +59,7 @@ public class GhostManager : ManagerBase<GhostManager>
         ghosts.Add(ghost);
     }
 
+    // check if the projectile has a collision with any of the ghost
     public bool DoesCollideWithGhosts(Vector3 position, Vector3 velocity, float radius)
     {
         var hasCollision = false;
@@ -88,14 +89,13 @@ public class GhostManager : ManagerBase<GhostManager>
         {
             var next = (i + 1) % transformsOfGhost.Count;
             if (EnvironmentManager.Instance.LinePointCollisionDetection(transformsOfGhost[i].CurrentPosition, transformsOfGhost[next].CurrentPosition, position, radius)){
-                // TODO: change Ghost behaviour
-                var acc = velocity / Time.deltaTime / 2;
+                // change Ghost behaviour by add an instantaneous acceleration
+                var acc = velocity / Time.deltaTime / ghostMass;
                 transformsOfGhost[i].AddInstantaneousAcc(acc);
                 transformsOfGhost[next].AddInstantaneousAcc(acc);
 
                 return true;
             }
-
         }
 
         return false;

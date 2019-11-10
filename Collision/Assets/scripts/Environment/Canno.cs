@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Canno : MonoBehaviour
 {
+    //cannon parts
     [SerializeField]
     private Transform cannoBody;
 
@@ -61,7 +62,7 @@ public class Canno : MonoBehaviour
             angle = angle + 360;
         }
 
-
+        // restrict the rotation of the cannon
         if (angle < -90)
         {
             angle = -90;

@@ -20,9 +20,11 @@ public class VerletPoint
     {
         var positionInThisFrame = transform.position;
 
+        //perform verlet positional update
         var nextPosition = 2 * positionInThisFrame - lastPosition + instantaneousAcc * Mathf.Pow(Time.deltaTime, 2); ;
 
-        if (EnvironmentManager.Instance.InBadArea(nextPosition, 0.3f))
+        // if the point has a collision with some point, simply put it but to the original position (no collision effect)
+        if (EnvironmentManager.Instance.InBadArea(positionInThisFrame, nextPosition, 0.3f))
         {
             transform.position = positionInThisFrame;
         }
@@ -32,29 +34,19 @@ public class VerletPoint
             lastPosition = positionInThisFrame;
         }
 
+        // treat all acceleration to be instananeous
         instantaneousAcc = new Vector3();
     }
 
-    public bool CheckCollision()
+    public void ReversePosition()
     {
-        foreach (var linePoints in EnvironmentManager.Instance.Colliders)
-        {
-            for (var i = 0; i < linePoints.Count - 1; i++)
-            {
-                //CollisionToCollider(linePoints[i], linePoints[i + 1]);
-                if (EnvironmentManager.Instance.LinePointCollisionDetection(linePoints[i], linePoints[i + 1], transform.position, 0.3f))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
+        transform.position = lastPosition;
     }
 
-    public void AddPosition(Vector3 changement)
+    public void AddDisplacement(Vector3 changement)
     {
         var newPosition = transform.position + changement;
-        if (!EnvironmentManager.Instance.InBadArea(newPosition, 0.3f))
+        if (!EnvironmentManager.Instance.InBadArea(transform.position, newPosition, 0.3f))
         {
             transform.position = newPosition;
         }

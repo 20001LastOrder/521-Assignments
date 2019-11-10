@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// constraint for left and right eyes
 public class EyePointDistanceConstraint : Constraint
 {
     List<float> leftEyeDistances;
@@ -17,6 +18,7 @@ public class EyePointDistanceConstraint : Constraint
         ResolveDistanceConstraint(ghost.RightEye, ghost.Points, rightEyeDistances, fixFactor);
     }
 
+    //set up the constraint by maintaining distance from left and right eye to each points
     protected override void SetupConstraint(Ghost ghost)
     {
         leftEyeDistances = CalculateDistances(ghost.LeftEye.CurrentPosition, ghost.Points);
@@ -43,10 +45,10 @@ public class EyePointDistanceConstraint : Constraint
             var direction = (points[i].CurrentPosition - point.CurrentPosition).normalized;
             var changement = (distance - distances[i]) * fixFactor / 2;
 
-            // resolve constraints
-            point.AddPosition(changement * direction);
+            // resolve constraints by move both points colser / far away
+            point.AddDisplacement(changement * direction);
             changement *= -1;
-            points[i].AddPosition(changement * direction);
+            points[i].AddDisplacement(changement * direction);
         }
     }
 }

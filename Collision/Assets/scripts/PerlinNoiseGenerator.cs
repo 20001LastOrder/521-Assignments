@@ -7,14 +7,10 @@ public class PerlinNoiseGenerator
     private System.Random r;
 
     private List<List<Vector2>> octaves;
-
-    private float noiseLength;
-
     public PerlinNoiseGenerator(int seed, float noiseLength, int numOctaves, float min, float max, int increasingPoints=2, int initialPoints = 6, float maxDecay = 0.5f)
     {
         r = new System.Random(seed);
         octaves = new List<List<Vector2>>();
-        this.noiseLength = noiseLength;
  
         //create octaves
         for(var i = 0; i < numOctaves; i++)
@@ -46,6 +42,7 @@ public class PerlinNoiseGenerator
         return points;
     }
 
+    // when get a specific value 
     private float GetValue(float x, List<Vector2> octave)
     {
         for(var i = 1; i < octave.Count; i++)
@@ -58,9 +55,10 @@ public class PerlinNoiseGenerator
             }
         }
 
-        return -1;
+        throw new System.InvalidOperationException("the point is out of Perlin Noise range");
     }
 
+    //get the over all value of all the octaves
     public float GetNoiseValue(float x)
     {
         float value = 0;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PointwiseConstraint : Constraint
 {
-    // distances between every point
+    // distances between one point to some other points
     List<List<float>> distances;
 
     public PointwiseConstraint(Ghost ghost, int iterationPerFrame) : base(ghost, iterationPerFrame)
@@ -17,25 +17,20 @@ public class PointwiseConstraint : Constraint
         {
             //check each point
             //add distance constraint;
-            for (var i = 0; i < ghost.Points.Count - 1; i++)
+            for (var i = 0; i < ghost.Points.Count; i++)
             {
                 var distanceToOtherPoints = distances[i];
-                for(var j = i + 1; j < System.Math.Min(i + 2, ghost.Points.Count); j++)
+                for(var j = i + 1; j < i + 4; j++)
                 {
-                    var distance = Vector3.Distance(ghost.Points[i].CurrentPosition, ghost.Points[j].CurrentPosition);
-                    var direction = (ghost.Points[j].CurrentPosition - ghost.Points[i].CurrentPosition).normalized;
+                    var next = j % ghost.Points.Count;
+                    var distance = Vector3.Distance(ghost.Points[i].CurrentPosition, ghost.Points[next].CurrentPosition);
+                    var direction = (ghost.Points[next].CurrentPosition - ghost.Points[i].CurrentPosition).normalized;
                     var changement = (distance - distanceToOtherPoints[j - i - 1]) * fixFactor / 2;
                     
-                    // resolve constraints
-                    ghost.Points[i].AddPosition(changement * direction);
-                    if (ghost.Points[i].CheckCollision())
-                    {
-                        ghost.Points[i].AddPosition(-changement * direction);
-                        changement *= 2;
-                    }
-
+                    // resolve constraints by move both points closer / far away
+                    ghost.Points[i].AddDisplacement(changement * direction);
                     changement *= -1;
-                    ghost.Points[j].AddPosition(changement * direction);
+                    ghost.Points[next].AddDisplacement(changement * direction);
                 }
             }
         }
@@ -45,13 +40,15 @@ public class PointwiseConstraint : Constraint
     {
         distances = new List<List<float>>();
         //add distance constraint;
-        for(var i = 0; i < ghost.Points.Count - 1; i++)
+        for(var i = 0; i < ghost.Points.Count; i++)
         {
             var distancesToOtherPoints = new List<float>();
 
-            for(var j = i + 1; j < System.Math.Min(i+2, ghost.Points.Count); j++)
+            // consider the distance from one point to the next 3 points close to it (enough to maintain the shape unless very extreme cases)
+            for(var j = i + 1; j < i + 4; j++)
             {
-                distancesToOtherPoints.Add(Vector3.Distance(ghost.Points[i].CurrentPosition, ghost.Points[j].CurrentPosition));
+                var next = j % ghost.Points.Count;
+                distancesToOtherPoints.Add(Vector3.Distance(ghost.Points[i].CurrentPosition, ghost.Points[next].CurrentPosition));
             }
             distances.Add(distancesToOtherPoints);
         }

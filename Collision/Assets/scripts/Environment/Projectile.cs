@@ -13,7 +13,6 @@ public class Projectile : MonoBehaviour
     private Vector3 lastFramePosition;
     private Vector3 lastSecondPosition;
 
-    // Start is called before the first frame update
     void Awake()
     {
         velocity = new Vector3(0, 0, 0);
@@ -21,7 +20,6 @@ public class Projectile : MonoBehaviour
         lastSecondPosition = transform.position;
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
         lastFramePosition = transform.position;
@@ -47,9 +45,9 @@ public class Projectile : MonoBehaviour
         {
             for(var i = 0; i < linePoints.Count - 1; i++)
             {
-                //CollisionToCollider(linePoints[i], linePoints[i + 1]);
                 if(EnvironmentManager.Instance.LinePointCollisionDetection(linePoints[i], linePoints[i + 1], position, radius))
                 {
+                    //collision response
                     velocity += EnvironmentManager.Instance.CollisionVelocityChange(linePoints[i], linePoints[i + 1], velocity, EnvironmentManager.Instance.ColliderRestitutionCoef);
                     transform.position = lastFramePosition;
                     UpdatePosition();
@@ -64,9 +62,12 @@ public class Projectile : MonoBehaviour
 
     private void UpdatePosition()
     {
-        if (transform.position.y > 0)
+        lastFramePosition = transform.position;
+        if (transform.position.y > EnvironmentManager.Instance.WindStartHeight)
         {
-            transform.position += ((velocity + EnvironmentManager.Instance.WindStrength) * Time.deltaTime);
+            //apply wind acc
+            transform.position += (velocity * Time.deltaTime);
+            velocity += EnvironmentManager.Instance.WindStrength * Time.deltaTime;
         }
         else
         {

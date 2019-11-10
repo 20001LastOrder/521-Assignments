@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
+// Utility Methods
 public static class Utils
 {
     private static System.Random r = new System.Random();
