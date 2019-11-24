@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+
+// UI logging manager
 public class UIManager : ManagerBase<UIManager>
 {
+    // player inventory text
     [SerializeField]
     private Text _inventoryText;
 
@@ -22,16 +25,25 @@ public class UIManager : ManagerBase<UIManager>
 	[SerializeField]
 	private Text _simulationSpeedText;
 
+    // inicator (->) that indicate current player action
 	[SerializeField]
 	private RectTransform _currentPlayerActionIndicator;
 
 	[SerializeField]
 	private Scrollbar _playerActionTextScroll;
 
+    [SerializeField]
+    private GameObject _goalReachedLogo;
+
 	[SerializeField]
 	private float _indicatorMove = 17;
 
-	[SerializeField]
+    [SerializeField]
+    private float _indicatorOffset = 17;
+
+    [SerializeField]
+    private int _logsInVision = 5;
+
 	private float _scrollDistance = 0.00854f;
 
 	private List<string> _playerActionLogs;
@@ -42,9 +54,9 @@ public class UIManager : ManagerBase<UIManager>
 		_playerActionLogs = new List<string>(_numberOfActionsToLog);
 		_thiefActionLogs = new Queue<string>(_numberOfActionsToLog);
 		_startIndicatorPos = _currentPlayerActionIndicator.localPosition;
-		Debug.Log(_startIndicatorPos);
 	}
 
+    // log player and caravan state inventory
 	public void LogStateInventory(SpiceVector playerInv, SpiceVector caravanInv)
     {
         var textFormat = "-------------------------\n";
@@ -72,8 +84,22 @@ public class UIManager : ManagerBase<UIManager>
 		foreach (var actionLog in _playerActionLogs) {
 			output += actionLog + "\n";
 		}
-		_playerActionText.text = output;
-	}
+
+        // resize the text box to fit the current plan actions
+        var size = _playerActionText.rectTransform.sizeDelta;
+        size.y = _indicatorMove * (_playerActionLogs.Count + 2);
+        _playerActionText.rectTransform.sizeDelta = size;
+
+        // reset the position of the indicator
+        var position = _currentPlayerActionIndicator.localPosition;
+        position.y = size.y / 2 - (3 * _indicatorMove) - _indicatorOffset;
+        _currentPlayerActionIndicator.localPosition = position;
+
+        // reset scroll distance for each action
+        _scrollDistance = 1.0f / (_playerActionLogs.Count - _logsInVision);
+
+        _playerActionText.text = output;
+    }
 
 	public void ClearPlayerActionLog() {
 		_playerActionLogs = new List<string>();
@@ -82,8 +108,9 @@ public class UIManager : ManagerBase<UIManager>
 		_playerActionTextScroll.value = 1;
 	}
 
+    // move the indicator and scroll to next action
 	public void MoveToNextPlayerAction() {
-		var position = _currentPlayerActionIndicator.localPosition;
+        var position = _currentPlayerActionIndicator.localPosition;
 		position.y -= _indicatorMove;
 		_currentPlayerActionIndicator.localPosition = position;
 		_playerActionTextScroll.value -= _scrollDistance;
@@ -109,6 +136,11 @@ public class UIManager : ManagerBase<UIManager>
 		_simulationSpeedText.text = speed + " x";
 	}
 
+    public void SetGameEnd()
+    {
+        _goalReachedLogo.SetActive(true);
+    }
+
 	private void PutActionToQueue(Queue<string> queue, string action) {
 		queue.Enqueue(action);
 
@@ -117,6 +149,7 @@ public class UIManager : ManagerBase<UIManager>
 		}
 	}
 
+    // log spice vector
 	private string LogSpiceVector(string name, SpiceVector vector)
     {
         string output = name + "|";

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// abstract class for any objects that can transfer spices
 public abstract class SpiceTransferPoint : MonoBehaviour
 {
+    // trade location
     [SerializeField]
     private Transform _tradePoint;
 
@@ -13,6 +15,7 @@ public abstract class SpiceTransferPoint : MonoBehaviour
         protected set => _tradePoint = value;
     }
 
+    // spice trade rule
     public SpiceVector TradeRule
     {
         get;

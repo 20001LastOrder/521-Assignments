@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Exchange action that trade spices with trader
 public class ExchangeAction : Action
 {
     private SpiceTransferPoint _p;
@@ -41,6 +42,7 @@ public class ExchangeAction : Action
         return clone;
     }
 
+    // check if player has enough items to change and has enough capacity to store the items after
     public override bool PreCondition(WorldState s)
     {
         bool satisfied = EnoughItem(s.PlayerStorage) && EnoughCapacity(s);

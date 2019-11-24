@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Manager for planning player action sequence
 public class PlayerPlanningManager : ManagerBase<PlayerPlanningManager>
 {
     [SerializeField]
@@ -18,13 +19,17 @@ public class PlayerPlanningManager : ManagerBase<PlayerPlanningManager>
         _traders = TraderManager.Instance.Traders;
         _actions = new List<Action>();
         _caravan = _player.Caravan;
-        CreateTakeActions();
+
+        // create a set of actions for the player
+        CreateCaravanActions();
         CreateTradeActions();
         
     }
 
+    // request a plan from current state w.r.t. some goal state
     public Stack<Action> RequestPlan(WorldState state, WorldState goalState)
     {
+        // this search w.r.t. the heuristic is a Heuristic search
         StateSpaceSearch s = new StateSpaceSearch(goalState, Heuristic, _actions);
         return s.Plan(state);
     }
@@ -37,8 +42,9 @@ public class PlayerPlanningManager : ManagerBase<PlayerPlanningManager>
         }
     }
 
-    private void CreateTakeActions()
+    private void CreateCaravanActions()
     {
+        // create take action
         for(var i = 0; i < _traders.Count; i++)
         {
             var deal = _traders[i].RequiredSpices();
@@ -49,10 +55,13 @@ public class PlayerPlanningManager : ManagerBase<PlayerPlanningManager>
         }
         var additionDeal = new SpiceVector();
         additionDeal.Spices[0] += 1;
+        // create an action to take a single Tu
         _actions.Add(new TakeAction(_caravan, "caravan take for single " + SpiceVector.SpiceNames[0], additionDeal));
+        // create an action to put everything to caravan
         _actions.Add(new PutAction(_caravan, "put everything to cavaran"));
     }
 
+    // heuristic for the state1 w.r.t. the target as state 2
     private int Heuristic(WorldState state1, WorldState state2)
     {
         int distance = 0;

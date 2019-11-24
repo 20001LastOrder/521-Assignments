@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+// Action Planning and Executing for the thief
 public class Theif : Actor
 {
+    // way point that the theif travels to
     [SerializeField]
     private List<Transform> _wayPoints;
 
@@ -20,7 +22,6 @@ public class Theif : Actor
     private int successTimes;
     private SpiceVector _inventory;
 
-
     private System.Random _numberGenerator;
 
     protected override void Start()
@@ -28,11 +29,13 @@ public class Theif : Actor
         base.Start();
         _numberGenerator = new System.Random();
         _inventory = new SpiceVector();
+        // log initial theif inventory
 		UIManager.Instance.LogThiefInventory(_inventory);
     }
 
     void Update()
     {
+        // check if the theif is on a stealing mission
         if (_isInSpecialAction)
         {
             return;
@@ -41,9 +44,12 @@ public class Theif : Actor
 
         timeCounter += Time.deltaTime;
 
+        // every 5 seconds, toss to check if there is a stealing action to be executed
         if (timeCounter > 5)
         {
             timeCounter = 0;
+
+            // if already steal 2 items, does not do anything
 			if (successTimes >= 2) {
 				return;
 			}
@@ -64,6 +70,7 @@ public class Theif : Actor
 			}
         }
 
+        // else if player is idle, move it to a random way point
         if (Status == ActorState.Idle)
         {
 			Status = ActorState.Processing;
@@ -72,15 +79,21 @@ public class Theif : Actor
 		}
 	}
 
+    /**
+     * Pathing finding and travel to a waypoint
+     */
     private IEnumerator GoToRandomWayPoint()
     {
         Status = ActorState.Processing;
         var index = _numberGenerator.Next(_wayPoints.Count);
         yield return PathFinding(_wayPoints[index].position);
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(0.5f);
         Status = ActorState.Idle;
     }
 
+    /**
+     * Try to steal from the caravan
+     */
     private IEnumerator GoToCaravanAndTakeRandomSpice()
     {
         _isInSpecialAction = true;
@@ -92,15 +105,18 @@ public class Theif : Actor
 
         Status = ActorState.Processing;
         yield return PathFinding(_player.Caravan.TradePoint.position);
+        // steal from caravan
         TakeRandomSpice(_player.PlayerState.CaravanStorage);
-
 
         _isInSpecialAction = false;
         Status = ActorState.Idle;
     }
 
+    // Take a random Spice fro from the vector
+    // vectorToStole: player inventory or cavaran inventory
     private void TakeRandomSpice(SpiceVector vectorToStole)
     {
+        // first find all non-zero entries
         var nonZeroIndexes = new List<int>();
         for (var i = 0; i < vectorToStole.Spices.Count; i++)
         {
@@ -126,6 +142,7 @@ public class Theif : Actor
 		}
 	}
 
+    // try steal from the player
     private IEnumerator ReachPlayerAndTakeRandomSpice()
     {
         _isInSpecialAction = true;
@@ -136,15 +153,17 @@ public class Theif : Actor
         }
 
         Status = ActorState.Processing;
+
+        // start trace the player
         StartCoroutine(FollowPlayer());
-
+        // wait until reach player
         yield return new WaitUntil(() => Vector3.Distance(transform.position, _player.transform.position) < 1);
-
+        // take a spice from player
         TakeRandomSpice(_player.PlayerState.PlayerStorage);
 
         _isReachedPlayer = true;
 
-		// wait for following corouting to finish
+		// wait for the "FollowPlayer" coroutine to finish
 		while (Status != ActorState.Processing) {
 			yield return null;
 		}
@@ -152,6 +171,7 @@ public class Theif : Actor
 		_isInSpecialAction = false;
 	}
 
+    // trace the player
 	private IEnumerator FollowPlayer()
     {
         if(Status != ActorState.Processing)
@@ -162,6 +182,7 @@ public class Theif : Actor
         Status = ActorState.Moving;
         _isReachedPlayer = false;
 
+        // continue re-pathfinding since the player is moving as well
         while (!_isReachedPlayer)
         {
             agent.SetDestination(_player.transform.position);

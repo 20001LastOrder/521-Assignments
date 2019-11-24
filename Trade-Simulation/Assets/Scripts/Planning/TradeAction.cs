@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-// assume unlimited supply
+// Deprecated: not using
 public class TradeAction : Action
 {
     private SpiceTransferPoint _p;

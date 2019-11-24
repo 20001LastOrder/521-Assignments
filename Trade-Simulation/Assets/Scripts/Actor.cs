@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+// An actor that can perform pathfinding through NavMesh
 [RequireComponent(typeof(NavMeshAgent))]
 public abstract class Actor : MonoBehaviour
 {
     protected NavMeshAgent agent;
     protected NavMeshPath path;
-    protected float distanceToDestination;
 
     public ActorState Status
     {
@@ -18,6 +18,7 @@ public abstract class Actor : MonoBehaviour
 
     protected virtual void Start()
     {
+        // initized navMesh and state
         path = new NavMeshPath();
         agent = GetComponent<NavMeshAgent>();
         Status = ActorState.Idle;
@@ -36,6 +37,7 @@ public abstract class Actor : MonoBehaviour
         //agent.CalculatePath(destination, path);
         agent.SetDestination(destination);
 
+        // wait for one frame for the navMesh to start
         yield return null;
         //wait for pathfinding to finish
         yield return new WaitUntil(() => (agent.pathStatus == NavMeshPathStatus.PathComplete && agent.remainingDistance <= 0.2));
@@ -44,6 +46,7 @@ public abstract class Actor : MonoBehaviour
     }
 }
 
+// Status for the actor to perform the plan
 public enum ActorState
 {
     Idle,

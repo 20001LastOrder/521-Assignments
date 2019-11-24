@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+// Spice vector storing the 7 spices with some basic operations for vector (add, minus, etc)
 [Serializable]
 public class SpiceVector : IEquatable<SpiceVector>
 {

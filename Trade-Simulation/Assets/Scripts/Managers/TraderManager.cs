@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Manage Generation of traders
 public class TraderManager : ManagerBase<TraderManager>
 {
     [SerializeField]
@@ -19,6 +20,7 @@ public class TraderManager : ManagerBase<TraderManager>
 
         var tem_traders = new List<Trader>(_traders);
 
+        // random assign id and duties to each trader
         var spiceIndex = 0;
         while(tem_traders.Count > 0)
         {

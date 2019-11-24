@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// take action that takes something from the cavaran
 public class TakeAction : Action
 {
     private Caravan _p;
     private SpiceVector _deal;
+
+    // deal is the spice that this action can take from the caravan
     public TakeAction(Caravan p, string name, SpiceVector deal)
     {
         _p = p;
@@ -44,6 +47,7 @@ public class TakeAction : Action
         player.EndProcessAction();
     }
 
+    // check if caravan has enough storage and player has enough capacity
     public override bool PreCondition(WorldState s)
     {
         return hasEnoughStorage(s) && EnoughCapacity(s);

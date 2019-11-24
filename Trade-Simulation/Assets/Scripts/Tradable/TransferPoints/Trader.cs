@@ -19,7 +19,8 @@ public class Trader : SpiceTransferPoint
         }
         return true;
     }
-
+    
+    // transfer deal
     public override SpiceVector Transfer(SpiceVector deal, SpiceVector storage)
     {
         if (!IsDealAcceptable(deal))
@@ -30,6 +31,7 @@ public class Trader : SpiceTransferPoint
         return storage;
     }
 
+    // set text for the id of the trader
     public void SetText(string text)
     {
         _text.text = text;
@@ -37,6 +39,7 @@ public class Trader : SpiceTransferPoint
 
     public string Name => _text.text;
 
+    // get required spice that the trader needs in order to transfer
     public SpiceVector RequiredSpices()
     {
         var getVector = TradeRule.Clone();

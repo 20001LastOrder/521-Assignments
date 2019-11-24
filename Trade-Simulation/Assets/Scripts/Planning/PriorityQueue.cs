@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+
+// priority queue implementation using SortedDictionary
 public class PriorityQueue<Key, Element>
 {
     private SortedDictionary<Key, Queue<Element>> _sortedDictionary;

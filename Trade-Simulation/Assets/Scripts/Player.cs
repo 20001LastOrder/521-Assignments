@@ -4,35 +4,38 @@ using UnityEngine;
 using UnityEngine.AI;
 using System.Linq;
 
+// the class for executing player action
 public class Player : Actor
 {
+    // Cavaran information
     [SerializeField]
     private Caravan _caravan;
 
+    // Spice for the goal state
     [SerializeField]
     public SpiceVector _goalVector;
 
-	[SerializeField]
-	private int _numFutureActionLog = 3;
-
-    private int i = -1;
+    // plan for Player to execute
     private Stack<Action> _plan;
+    // current player state
     private WorldState _playerState;
+    // goal for the player -> comes from the goal vector
     private WorldState _goalState;
 
+    /**
+     * current inventory of the player 
+     */ 
     public SpiceVector Storage {
         get;
         private set;
     }
 
+    /**
+     * current world state (including inventory of the player and the caravan)
+     */
     public WorldState PlayerState => _playerState;
 
     public Caravan Caravan => _caravan;
-
-    public void SetPlan(Stack<Action> plan)
-    {
-        _plan = plan;
-    }
 
     // Start is called before the first frame update
     protected override void Start()
@@ -43,7 +46,7 @@ public class Player : Actor
         _playerState = new WorldState(_caravan.Storage, Storage);
         _goalState = new WorldState(_goalVector, null);
 
-        //initial logging
+        //initial logging for the inventory
         UIManager.Instance.LogStateInventory(_playerState.PlayerStorage, _playerState.CaravanStorage);
     }
 
@@ -52,9 +55,10 @@ public class Player : Actor
     {
        if(Status == ActorState.Idle && _plan.Count > 0)
         {
-           UIManager.Instance.LogStateInventory(_playerState.PlayerStorage, _playerState.CaravanStorage); 
+           // get new action
            var action = _plan.Pop();
 
+            // check precondition and execure action
 			if (action.PreCondition(_playerState))
 			{
 				// move indicator to the next action of the plan
@@ -63,20 +67,24 @@ public class Player : Actor
 			}
 			else
 			{
+                // if the precondition does not meet, clear plan to triger replanning.
 				_plan = new Stack<Action>();
 			}
         }
         else if(_plan.Count == 0 && Status == ActorState.Idle)
         {
+            // if there is no action in plan and we reaches goal state, finish
             if (_playerState.Reaches(_goalState))
             {
 				UIManager.Instance.AddNewPlayerActoinLog("Found Goal, Idle");
 				UIManager.Instance.ShowPlayerActionLog();
 				UIManager.Instance.MoveToNextPlayerAction();
 				Status = ActorState.FindGoal;
+                SimulationManager.Instance.IsGoalReached = true;
             }
             else
             {
+                // Replan with new plan action log
 				//clear old action logs
 				UIManager.Instance.ClearPlayerActionLog();
 				UIManager.Instance.AddNewPlayerActoinLog("----------------");
@@ -100,12 +108,14 @@ public class Player : Actor
 		}
     }
 
+    // perform action and log inventory after
     public IEnumerator ActionWithLogging(Action action)
     {
         yield return action.Operator(_playerState, this);
         UIManager.Instance.LogStateInventory(_playerState.PlayerStorage, _playerState.CaravanStorage);
     }
 
+    // state transition
     public void BeginProcessAction()
     {
         if(Status == ActorState.Idle)
@@ -114,6 +124,7 @@ public class Player : Actor
         }
     }
 
+    // state transition
     public void EndProcessAction()
     {
         if (Status == ActorState.Processing)
@@ -122,6 +133,9 @@ public class Player : Actor
         }
     }
 
+    /**
+     * Deprecated: used to consider composite action
+     */
     public void AddNewActions(List<Action> actions)
     {
         for(var i = actions.Count - 1; i >= 0; i--)
@@ -130,25 +144,11 @@ public class Player : Actor
         }
     }
 
+    /**
+     * Check if there is a current action performing by the Player
+     */
     public bool CanProcessAction()
     {
         return Status == ActorState.Idle;
-    }
-
-    public void Trade(SpiceTransferPoint p, SpiceVector deal)
-    {
-        p.Transfer(deal, Storage);
-    }
-
-    public Vector3 GetMousePosition()
-    {
-        Vector3 mouse = Input.mousePosition;
-        Ray castPoint = Camera.main.ScreenPointToRay(mouse);
-        RaycastHit hit;
-        if (Physics.Raycast(castPoint, out hit, Mathf.Infinity))
-        {
-            return hit.point;
-        }
-        return new Vector3();
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// action that put everything from player storage to the caravan
 public class PutAction : Action
 {
     private Caravan _p;
@@ -13,6 +14,7 @@ public class PutAction : Action
         Cost = 1;
     }
 
+    // everything is added to caravan and nothing left in player
     public override WorldState Effect(WorldState s)
     {
         var clone = s.Clone();
@@ -21,6 +23,7 @@ public class PutAction : Action
         return clone;
     }
 
+    // perform the actual action
     public override IEnumerator Operator(WorldState w, Player player)
     {
         if (!player.CanProcessAction())

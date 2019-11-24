@@ -12,6 +12,7 @@ public class Caravan : SpiceTransferPoint
         Storage = new SpiceVector();
     }
 
+    // check if the caravan storage can satisfy the deal
     public override bool IsDealAcceptable(SpiceVector deal)
     {
         for(var i = 0; i < deal.Spices.Count; i++)
@@ -25,6 +26,7 @@ public class Caravan : SpiceTransferPoint
         return true;
     }
 
+    // transfer spices
     public override SpiceVector Transfer(SpiceVector deal, SpiceVector storage)
     {
         if (!IsDealAcceptable(deal))
