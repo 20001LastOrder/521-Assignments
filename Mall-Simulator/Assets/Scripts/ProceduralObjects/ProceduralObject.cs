@@ -9,6 +9,4 @@ public abstract class ProceduralObject : MonoBehaviour
     protected float _radius;
 
     public float Radius => _radius;
-
-    public abstract bool IsPosSatisfyConstraint(Vector3 position, System.Type objectType);
 }

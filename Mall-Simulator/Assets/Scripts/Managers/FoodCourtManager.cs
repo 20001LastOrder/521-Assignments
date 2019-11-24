@@ -11,22 +11,46 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
     private float _foodCourtHeight;
 
     [SerializeField]
-    private GameObject _tablePrefab;
-
-    [SerializeField]
     private int _tableNumberMax;
 
     [SerializeField]
     private int _tableNumberMin;
 
+    [SerializeField]
+    private int _planterNumberMax;
+
+    [SerializeField]
+    private int _planterNumberMin;
+
+    [SerializeField]
+    private float _tableTableDistance;
+
+    [SerializeField]
+    private float _tablePlanterDistance;
+
+    [SerializeField]
+    private float _planterPlanterDistance;
+
+    [SerializeField]
+    private GameObject _tablePrefab;
+
+    [SerializeField]
+    private GameObject _planterPrefab;
+
     private List<Table> _tables;
+    private List<Planter> _planters;
+    private float _planterRadius;
 
     public List<Table> Tables => _tables;
+    public List<Planter> Planters => _planters;
 
     public void Start()
     {
         var numTables = Utils.RandomInt(_tableNumberMin, _tableNumberMax + 1);
+        var numPlanters = Utils.RandomInt(_planterNumberMin, _planterNumberMax + 1);
+        _planterRadius = _planterPrefab.GetComponent<Planter>().Radius;
         GenerateTables(numTables);
+        GeneratePlanters(numPlanters);
     }
 
     private void GenerateTables(int numTables)
@@ -45,7 +69,25 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
                 _tables.Add(table);
             }
         }
-        Debug.Log("Food: "+ i);
+    }
+
+    private void GeneratePlanters(int numPlanters)
+    {
+        _planters = new List<Planter>();
+
+        var i = 0;
+        while (_planters.Count < numPlanters && i < 5000)
+        {
+            i++;
+            var randomIndex = Utils.RandomInt(0, _tables.Count);
+            var pos = GenerateRandomPlanterLocation(_tables[randomIndex]);
+            if (IsSatisfyTablePlanterConstraint(pos) && IsSatisfyPlanterPlanterConstraint(pos))
+            {
+                var plant = Instantiate(_planterPrefab, pos, Quaternion.identity).GetComponent<Planter>();
+                plant.transform.parent = transform;
+                _planters.Add(plant);
+            }
+        }
     }
 
     private Vector3 GenerateRandomTableLocation()
@@ -57,23 +99,53 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
         else
         {
             var pos = _tables.Last().transform.position;
-            pos += new Vector3(2*_tables.Last().Radius + Table.tableTableDistance + 2*Utils.RandomFloat(), 0, 0);
+            pos += new Vector3(2*_tables.Last().FullRadius + _tableTableDistance + _tableTableDistance * Utils.RandomFloat(), 0, 0);
             pos.y = Utils.RandomFloat(-_foodCourtHeight, _foodCourtHeight);
             return pos;
         }
     }
 
+    private Vector3 GenerateRandomPlanterLocation(Table table)
+    {
+        var centerPos = table.transform.position;
+
+        // get directional vector of a random direction
+        var randomDirection = new Vector3(Utils.RandomFloat(-1, 1), Utils.RandomFloat(-1, 1));
+        randomDirection.Normalize();
+        var noise = _tablePlanterDistance * Utils.RandomFloat();
+
+        return centerPos + (_planterRadius + table.FullRadius + _tablePlanterDistance + noise) * randomDirection;
+    }
+
     private bool IsSatisfyTableTableConstraint(Vector3 pos)
     {
-        foreach (var table in _tables)
-        {
-            if (!table.IsPosSatisfyConstraint(pos, typeof(Table)))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return _tables.TrueForAll(table => CheckTableTableConstraint(table, pos));
     }
+
+    private bool IsSatisfyTablePlanterConstraint(Vector3 pos)
+    {
+        return _tables.TrueForAll(table => CheckTablePlanterConstraint(table, pos));
+    }
+
+    private bool IsSatisfyPlanterPlanterConstraint(Vector3 pos)
+    {
+        return _planters.TrueForAll(planter => CheckPlanterPlanterConstraint(planter, pos));
+    }
+
+    private bool CheckTablePlanterConstraint(Table table, Vector3 position)
+    {
+        return (table.transform.position - position).magnitude >= table.FullRadius + _planterRadius + _tablePlanterDistance;
+    }
+
+    private bool CheckPlanterPlanterConstraint(Planter planter, Vector3 position)
+    {
+        return (planter.transform.position - position).magnitude >= planter.Radius + _planterRadius + _planterPlanterDistance;
+    }
+
+    private bool CheckTableTableConstraint(Table table, Vector3 position)
+    {
+        return (table.transform.position - position).magnitude >= 2 * table.FullRadius + _tableTableDistance;
+    }
+
 
 }

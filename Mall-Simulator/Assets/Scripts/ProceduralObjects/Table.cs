@@ -11,25 +11,33 @@ public class Table : ProceduralObject
     [SerializeField]
     private int _seatNumberMin;
 
-    public static readonly float tableSeatDistance = 0.1f;
+    [SerializeField]
+    private float _seatSeatDistance;
+    private float _tableRadius;
 
-    public static readonly float tableTableDistance = 1;
+    [SerializeField]
+    private float _tableSeatDistance = 0.1f;
 
     [SerializeField]
     private GameObject _seatPrefab;
 
     private float _seatRadius;
-    private float _tableRadius;
+
     private List<Seat> _seats;
-    public float TableRadius => _tableRadius;
+    public float FullRadius => _tableRadius;
     public List<Seat> Seats => _seats;
 
     // Start is called before the first frame update
     void Awake()
     {
-        _tableRadius = GetComponent<SpriteRenderer>().bounds.size.x / 2;
-        _seatRadius = _seatPrefab.GetComponent<SpriteRenderer>().bounds.size.x / 2;
-        _radius = _tableRadius + _seatRadius + tableSeatDistance;
+        var currentSize = GetComponent<SpriteRenderer>().bounds.size;
+        var scale = transform.localScale;
+        scale.x = scale.x * _radius * 2 / (currentSize.x);
+        scale.y = scale.y * _radius * 2 / (currentSize.y);
+        transform.localScale = scale;
+
+        _seatRadius = _seatPrefab.GetComponent<Seat>().Radius;
+        _tableRadius = _radius + _seatRadius + _tableSeatDistance;
     }
 
     private void Start()
@@ -56,7 +64,6 @@ public class Table : ProceduralObject
                 _seats.Add(seat);
             }
         }
-        Debug.Log("Table: " + i);
     }
 
     private Vector3 GetRandomSeatDistance(float seatRadius)
@@ -67,14 +74,14 @@ public class Table : ProceduralObject
         var randomDirection = new Vector3(Utils.RandomFloat(-1, 1), Utils.RandomFloat(-1, 1));
         randomDirection.Normalize();
 
-        return centerPos+(seatRadius + _tableRadius + tableSeatDistance) * randomDirection;
+        return centerPos+(seatRadius + _radius + _tableSeatDistance) * randomDirection;
     }
 
     private bool IsSatisfySeatSeatConstraint(Vector3 pos)
     {
         foreach (var seat in _seats)
         {
-            if (!seat.IsPosSatisfyConstraint(pos, typeof(Seat)))
+            if (!CheckSeatSeatConstraint(seat, pos))
             {
                 return false;
             }
@@ -83,19 +90,10 @@ public class Table : ProceduralObject
         return true;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
-    public override bool IsPosSatisfyConstraint(Vector3 position, Type objectType)
-    {
-        if (objectType == typeof(Table))
-        {
-            return (transform.position - position).magnitude >= 2 * _radius + tableTableDistance;
-        }
 
-        return false;
+    private bool CheckSeatSeatConstraint(Seat seat, Vector3 position)
+    {
+        return (seat.transform.position - position).magnitude >= 2 * seat.Radius + _seatSeatDistance;
     }
 }

@@ -164,11 +164,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _foodCourtWidth: 8
-  _foodCourtHeight: 2
-  _tablePrefab: {fileID: 8503647092380484490, guid: 1a14c64bb3f563c46a76ee921a9d97bc,
-    type: 3}
+  _foodCourtHeight: 3
   _tableNumberMax: 4
   _tableNumberMin: 3
+  _planterNumberMax: 6
+  _planterNumberMin: 4
+  _tableTableDistance: 1
+  _tablePlanterDistance: 0
+  _planterPlanterDistance: 0
+  _tablePrefab: {fileID: 8503647092380484490, guid: 1a14c64bb3f563c46a76ee921a9d97bc,
+    type: 3}
+  _planterPrefab: {fileID: 3873355142821568155, guid: 01fc1a9fd72091944b1dcbd0ee8cd52d,
+    type: 3}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
