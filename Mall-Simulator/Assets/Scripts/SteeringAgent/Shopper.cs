@@ -154,7 +154,7 @@ public class Shopper : SteeringAgent
         flowVelocity = flowVelocity.normalized * _maxSpeed;
 
         //toss a coin and decide what the shopper should do
-        if(Utils.RandomFloat() < 0.5)
+        if(Utils.RandomFloat() < 0.5f)
         {
             _status = ShopperStatus.TavellingToExitMall;
         }

@@ -25,7 +25,79 @@ public class SteeringManager : ManagerBase<SteeringManager>
         agent.AddSteering(desiredVelocity - agent.Velocity);
     }
 
-    public void ObstacleAvoidance(SteeringAgent agent)
+	public void ObstacleAvoidance(SteeringAgent agent) {
+		//agent.gameObject.layer = 10;
+		//get the side vector
+		var side = agent.transform.up;
+		var forward = agent.transform.right;
+		var ray1Pos = side.normalized * agent.Radius + agent.transform.position;
+		var ray2Pos = side.normalized * -agent.Radius + agent.transform.position;
+		var c1 = CheckCollision(ray1Pos, forward, agent.ObstacleAvoidanceLookahead);
+		var c2 = CheckCollision(ray2Pos, forward, agent.ObstacleAvoidanceLookahead);
+		var colliderToAvoid = FindNearestCollider(agent, c1, c2);
+
+		//if no obstacle in front then return
+		if (colliderToAvoid == null) {
+			return;
+		}
+		var colliderToAgent = agent.transform.position - colliderToAvoid.transform.position;
+		agent.gameObject.layer = 0;
+		//if the distance is smallar than the taget distance, reutrn null
+		if (agent._seekingTarget!= null && Vector3.Distance(agent.transform.position, agent._seekingTarget.Value) < colliderToAgent.magnitude) {
+			return;
+		}
+
+		// calculate the steering force
+
+		// find engage vector
+		var engagingVector = Vector3.Project(colliderToAgent, forward);
+		// find a escaping vector
+		var escapingVector = colliderToAgent - engagingVector;
+
+
+		if (colliderToAvoid.tag.Equals("Shop")) {
+			escapingVector = -Mathf.Sign(agent.transform.position.y) * Vector3.up;
+		} else {
+			// if the direction is pointing to the center of the collider, choose either way
+			if (escapingVector.magnitude < 0.01f) {
+				escapingVector = -side;
+			}
+		}
+			//add a force perpendicular to the engagingDistance (0.01 to avoid division by 0)
+			agent.AddSteering(escapingVector.normalized / (engagingVector.magnitude + 0.01f));
+
+	}
+
+	private Collider2D CheckCollision(Vector3 rayPosition, Vector3 rayDirection, float distance) {
+		// Bit shift the index of the layer (10) to get a bit mask
+		int layerMask = 1 << 10;
+		layerMask = ~layerMask;
+
+		Debug.DrawRay(rayPosition, rayDirection * distance, Color.red, 1/60.0f);
+		RaycastHit2D hit = Physics2D.Raycast(rayPosition, rayDirection, distance, layerMask);
+		if(hit.collider != null) {
+			return hit.collider;
+		}
+		return null;
+	}
+
+	private Collider2D FindNearestCollider(SteeringAgent agent, Collider2D c1, Collider2D c2) {
+		if(c1 == null) {
+			return c2;
+		}
+
+		if (c2 == null) {
+			return c1;
+		}
+
+		if(Vector3.Distance(agent.transform.position, c1.transform.position) > Vector3.Distance(agent.transform.position, c2.transform.position)){
+			return c2;
+		} else {
+			return c1;
+		}
+	}
+
+/*    public void ObstacleAvoidance(SteeringAgent agent)
     {
         var destinationVector = agent._seekingTarget != null ? (agent._seekingTarget.Value - agent.transform.position) : agent.transform.right * agent.ObstacleAvoidanceLookahead;
 
@@ -82,5 +154,5 @@ public class SteeringManager : ManagerBase<SteeringManager>
                 agent.AddSteering(agent.transform.up * agent.MaxSpeed / objectDistance);
             }
         }
-    }
+    }*/
 }

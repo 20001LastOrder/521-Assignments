@@ -4,8 +4,7 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - table
-  - eater
+  - Shop
   layers:
   - Default
   - TransparentFX
@@ -17,7 +16,7 @@ TagManager:
   - 
   - Table
   - Eater
-  - 
+  - Ignored
   - 
   - 
   - 

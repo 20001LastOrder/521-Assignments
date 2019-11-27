@@ -26,9 +26,12 @@ public class ShopperManager : ManagerBase<ShopperManager>
 
     void Start()
     {
-        _shoppers = new List<Shopper>();
-
-    }
+		_shoppers = new List<Shopper>();
+		counter = 0;
+		for (var i = 0; i < 100; i++) {
+			InstantiateShopper();
+		}
+	}
 
     // Update is called once per frame
     void Update()
@@ -37,12 +40,12 @@ public class ShopperManager : ManagerBase<ShopperManager>
         if(counter > updateFrequency)
         {
             counter = 0;
-            for (var i = 0; i < 1; i++)
+            for (var i = 0; i < 10; i++)
             {
-                InstantiateShopper();
+                //InstantiateShopper();
             }
         }
-    }
+	}
 
     public void DeregisterShopper(Shopper shopper)
     {
