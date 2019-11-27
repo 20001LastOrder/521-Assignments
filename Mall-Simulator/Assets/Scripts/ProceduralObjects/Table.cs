@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Table : ProceduralObject
+public class Table : CircularObject
 {
     [SerializeField]
     private int _seatNumberMax;
@@ -28,8 +28,9 @@ public class Table : ProceduralObject
     public List<Seat> Seats => _seats;
 
     // Start is called before the first frame update
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         var currentSize = GetComponent<SpriteRenderer>().bounds.size;
         var scale = transform.localScale;
         scale.x = scale.x * _radius * 2 / (currentSize.x);
@@ -37,7 +38,7 @@ public class Table : ProceduralObject
         transform.localScale = scale;
 
         _seatRadius = _seatPrefab.GetComponent<Seat>().Radius;
-        _tableRadius = _radius + _seatRadius + _tableSeatDistance;
+        _tableRadius = _radius + 2*_seatRadius + _tableSeatDistance;
     }
 
     private void Start()
@@ -89,8 +90,6 @@ public class Table : ProceduralObject
 
         return true;
     }
-
-
 
     private bool CheckSeatSeatConstraint(Seat seat, Vector3 position)
     {

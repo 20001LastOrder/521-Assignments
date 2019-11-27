@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6514435079666128837}
   - component: {fileID: 6514435079666128834}
-  - component: {fileID: 700682612}
   - component: {fileID: 700682611}
   m_Layer: 0
   m_Name: seat
@@ -82,22 +81,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!58 &700682612
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6514435079666128835}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 4
 --- !u!114 &700682611
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110,5 +93,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10af36edcd26b8f46a9c1379d61678b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _radius: 0.4
-  _seatSeatDistance: 0.3
+  _radius: 0.2

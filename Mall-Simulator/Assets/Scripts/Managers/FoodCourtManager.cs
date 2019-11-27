@@ -39,13 +39,36 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
 
     private List<Table> _tables;
     private List<Planter> _planters;
+    private List<Seat> _availableSeats;
     private float _planterRadius;
 
     public List<Table> Tables => _tables;
     public List<Planter> Planters => _planters;
 
-    public void Start()
+    public Seat GetRandomAvailableSeat()
     {
+        if(_availableSeats.Count == 0)
+        {
+            return null;
+        }
+        var index = Utils.RandomInt(0, _availableSeats.Count);
+        Debug.Log(Utils.RandomInt(0, _availableSeats.Count));
+        return _availableSeats[index];
+    }
+
+    public void RegisterAvailableSeat(Seat seat)
+    {
+        _availableSeats.Add(seat);
+    }
+
+    public void DeregisterAvailableSeat(Seat seat)
+    {
+        _availableSeats.Remove(seat);
+    }
+
+    private void Start()
+    {
+        _availableSeats = new List<Seat>();
         var numTables = Utils.RandomInt(_tableNumberMin, _tableNumberMax + 1);
         var numPlanters = Utils.RandomInt(_planterNumberMin, _planterNumberMax + 1);
         _planterRadius = _planterPrefab.GetComponent<Planter>().Radius;
