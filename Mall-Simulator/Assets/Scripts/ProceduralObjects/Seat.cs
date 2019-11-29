@@ -21,9 +21,8 @@ public class Seat : CircularObject
     }
 
     // Start is called before the first frame update
-    protected override void  Awake()
+    protected void  Awake()
     {
-        base.Awake();
         ObstacleManager.Instance.DeregisterObstacle(this);
         var currentSize = GetComponent<SpriteRenderer>().bounds.size;
         var scale = transform.localScale;

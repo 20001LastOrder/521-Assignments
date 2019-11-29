@@ -28,9 +28,8 @@ public class Table : CircularObject
     public List<Seat> Seats => _seats;
 
     // Start is called before the first frame update
-    protected override void Awake()
+    protected void Awake()
     {
-        base.Awake();
         var currentSize = GetComponent<SpriteRenderer>().bounds.size;
         var scale = transform.localScale;
         scale.x = scale.x * _radius * 2 / (currentSize.x);

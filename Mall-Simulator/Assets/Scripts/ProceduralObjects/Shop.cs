@@ -14,14 +14,4 @@ public class Shop : CircularObject
 
     public Vector3 LowerLeftCorner => _lowerLeftCorner.position;
 
-    protected override void Awake()
-    {
-        
-    }
-
-    //move base awake to start as the shop will be in the scene at the beginning
-    private void Start()
-    {
-        base.Awake();
-    }
 }

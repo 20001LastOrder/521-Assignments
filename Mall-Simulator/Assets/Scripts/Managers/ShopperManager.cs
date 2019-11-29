@@ -15,10 +15,16 @@ public class ShopperManager : ManagerBase<ShopperManager>
     private float _minY;
 
     [SerializeField]
-    private float updateFrequency = 20;
+    private float _updateFrequency = 20;
 
+	[SerializeField]
+	private float _playerGenerationRate;
+	
     [SerializeField]
     private GameObject _shopperPrefab;
+
+	[SerializeField]
+	private int _shopperLayer = 13;
 
     private List<Shopper> _shoppers;
 
@@ -27,22 +33,19 @@ public class ShopperManager : ManagerBase<ShopperManager>
     void Start()
     {
 		_shoppers = new List<Shopper>();
-		counter = 0;
-		for (var i = 0; i < 100; i++) {
-			InstantiateShopper();
-		}
+		counter = _updateFrequency;
 	}
 
     // Update is called once per frame
     void Update()
     {
         counter += Time.deltaTime;
-        if(counter > updateFrequency)
+        if(counter > _updateFrequency)
         {
             counter = 0;
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < _playerGenerationRate; i++)
             {
-                //InstantiateShopper();
+                InstantiateShopper();
             }
         }
 	}
@@ -56,7 +59,8 @@ public class ShopperManager : ManagerBase<ShopperManager>
     {
         var shopper = Instantiate(_shopperPrefab, GetRandomStartingPoint(), Quaternion.identity).GetComponent<Shopper>();
         shopper.transform.parent = transform;
-        _shoppers.Add(shopper);
+		shopper.gameObject.layer = _shopperLayer;
+		_shoppers.Add(shopper);
     }
 
     public Vector3 GetDestination(Vector3 currentPosition)
@@ -68,4 +72,8 @@ public class ShopperManager : ManagerBase<ShopperManager>
     {
         return new Vector3(_startX, Utils.RandomFloat(_minY, _maxY), -1);
     }
+
+	public void UpdatePlayerGenerationRate(float rate) {
+		_playerGenerationRate = (int)rate;
+	}
 }

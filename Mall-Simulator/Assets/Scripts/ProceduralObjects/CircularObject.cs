@@ -8,15 +8,5 @@ public abstract class CircularObject : MonoBehaviour
     [SerializeField]
     protected float _radius;
 
-    protected virtual void Awake()
-    {
-        ObstacleManager.Instance.RegisterObstacle(this);
-    }
-
-    protected virtual void OnDestroy()
-    {
-        ObstacleManager.Instance.DeregisterObstacle(this);
-    }
-
     public float Radius => _radius;
 }

@@ -35,7 +35,6 @@ public class Shopper : SteeringAgent
         TavellingToExitMall,
         TravellingToShop,
         InShop,
-        ExitingShop,
         TravellingToEat,
         Seating,
         FinishedEat
@@ -67,18 +66,11 @@ public class Shopper : SteeringAgent
                 {
                     _render.color = Color.red;
                     _counter = 0;
-                    _seekingTarget = ShopManager.Instance.GetShopExit(transform.position);
-                    _status = ShopperStatus.ExitingShop;
-                }
-                break;
-            case ShopperStatus.ExitingShop:
-                if (Vector3.Distance(transform.position, _seekingTarget.Value) < 0.1f)
-                {
-                    ResetSteering();
-                    _targetSeat = FoodCourtManager.Instance.GetRandomAvailableSeat();
-                    _seekingTarget = _targetSeat.transform.position;
-                    _status = ShopperStatus.TravellingToEat;
-                }
+					ResetSteering();
+					_targetSeat = FoodCourtManager.Instance.GetRandomAvailableSeat();
+					_seekingTarget = _targetSeat.transform.position;
+					_status = ShopperStatus.TravellingToEat;
+				}
                 break;
             case ShopperStatus.TravellingToEat:
                 if (Vector3.Distance(transform.position, _seekingTarget.Value) < 0.5f && _targetSeat.IsAvailable)
@@ -111,7 +103,7 @@ public class Shopper : SteeringAgent
                 {
                     // enable collision between seat and player
                     _targetSeat.IsAvailable = true;
-                    gameObject.layer = 0;
+                    gameObject.layer = 13;
                     _status = ShopperStatus.TavellingToExitMall;
                     ResetSteering();
                     _seekingTarget = null;
@@ -134,7 +126,6 @@ public class Shopper : SteeringAgent
                 SteeringManager.Instance.Seek(this);
                 SteeringManager.Instance.ObstacleAvoidance(this);
                 break;
-            case ShopperStatus.ExitingShop:
             case ShopperStatus.FinishedEat:
             case ShopperStatus.Seating:
                 SteeringManager.Instance.Seek(this);
@@ -142,9 +133,8 @@ public class Shopper : SteeringAgent
         }
     }
 
-    protected override void OnDestroy()
+    protected void OnDestroy()
     {
-        base.OnDestroy();
         ShopperManager.Instance.DeregisterShopper(this);
     }
 
