@@ -41,6 +41,8 @@ public class SteeringManager : ManagerBase<SteeringManager>
 
     public void FlowFieldFollowing(SteeringAgent agent, Vector3 desiredVelocity)
     {
+        // set to the maximum speed of the agent
+        desiredVelocity = desiredVelocity.normalized * agent.MaxSpeed;
         agent.AddSteering(desiredVelocity - agent.Velocity);
     }
 
@@ -88,7 +90,7 @@ public class SteeringManager : ManagerBase<SteeringManager>
 
 	private Collider2D CheckCollision(Vector3 rayPosition, Vector3 rayDirection, float distance) {
 		// Bit shift the index of the layer (10) to get a bit mask
-		int layerMask = 1 << 10;
+		int layerMask = (1 << 10) + (1 << 11);
 		layerMask = ~layerMask;
 
 		Debug.DrawRay(rayPosition, rayDirection * distance, Color.red, 1/60.0f);

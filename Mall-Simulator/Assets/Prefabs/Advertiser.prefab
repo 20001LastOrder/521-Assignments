@@ -253,15 +253,17 @@ MonoBehaviour:
   _thrustFactor: 0.5
   _arrivalDistance: 1
   _obstacleAvoidanceLookahead: 3
-  pursuitTarget: {fileID: 0}
   _advertiserDislikeDistance: 5
-  _wanderTargetXMin: 16
-  _wanderTargetXMax: 17
+  _wanderTargetXMin: 6
+  _wanderTargetXMax: 15
   _wanderTargetChangeTime: 10
   _wanderTargetYMax: 8
   _advertiseFreq: 5
   _advertiseProb: 0.5
+  _salesTargetNumber: 3
+  _saleDistance: 3
+  _saleTime: 4
+  _salePatienceTime: 5
+  _render: {fileID: 2890529749985060689}
   _flyerPrefab: {fileID: 2017614908604390223, guid: f6084e5c3d5096e4b8bd8825c0b10330,
     type: 3}
-  PursueTarget: {fileID: 0}
-  FleeTarget: {fileID: 0}

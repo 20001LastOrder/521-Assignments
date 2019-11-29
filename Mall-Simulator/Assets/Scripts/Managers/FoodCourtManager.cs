@@ -52,7 +52,6 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
             return null;
         }
         var index = Utils.RandomInt(0, _availableSeats.Count);
-        Debug.Log(Utils.RandomInt(0, _availableSeats.Count));
         return _availableSeats[index];
     }
 

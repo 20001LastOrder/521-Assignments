@@ -12,7 +12,6 @@ public class Advertiser : SteeringAgent {
 	private float _wanderTargetXMax = 17;
 	[SerializeField]
 	private float _wanderTargetChangeTime = 5;
-
 	[SerializeField]
 	private float _wanderTargetYMax= 8;
 
@@ -22,19 +21,34 @@ public class Advertiser : SteeringAgent {
 	[SerializeField]
 	private float _advertiseProb = 0.5f;
 
+    [SerializeField]
+    private int _salesTargetNumber = 3;
+
+    [SerializeField]
+    private float _saleDistance = 3;
+
+    [SerializeField]
+    private float _saleTime = 4;
+
+    [SerializeField]
+    private float _salePatienceTime = 5;
+
+    [SerializeField]
+    private SpriteRenderer _render;
+
 	[SerializeField]
 	private GameObject _flyerPrefab;
 
 	private float _counter;
 	private float _advertiseCounter;
+    private float _salesDelivered;
+    private SteeringAgent _pursueTarget;
 
-	private enum AdvertiserState {
-		Wandering
+    private enum AdvertiserState {
+		Wandering,
+        Advertise
 	}
 	private AdvertiserState _state;
-
-	public SteeringAgent PursueTarget;
-	public SteeringAgent FleeTarget;
 
 	protected override void Start() {
 		base.Start();
@@ -58,6 +72,32 @@ public class Advertiser : SteeringAgent {
 				}
 
 				break;
+            case AdvertiserState.Advertise:
+                _counter += Time.deltaTime;
+                if(_pursueTarget == null)
+                {
+                    TransitToWandering();
+                }
+                if(Vector3.Distance(transform.position, _pursueTarget.transform.position) < _saleDistance)
+                {
+                    _advertiseCounter += Time.deltaTime;
+                }
+                else
+                {
+                    _advertiseCounter = 0;
+                }
+
+                if(_advertiseCounter > _saleTime)
+                {
+                    DeliverSale();
+                    TransitToWandering();
+                }
+
+                if(_counter > _salePatienceTime)
+                {
+                    TransitToWandering();
+                }
+                break;
 		}
 	}
 
@@ -80,16 +120,54 @@ public class Advertiser : SteeringAgent {
 				}
 				SteeringManager.Instance.ObstacleAvoidance(this);
 				break;
-		}
+            case AdvertiserState.Advertise:
+                SteeringManager.Instance.Pursue(this, _pursueTarget);
+                SteeringManager.Instance.ObstacleAvoidance(this);
+                break;
+        }
 	}
 
-	private Vector3 GetNewSeekTarget() {
+    public void SendToAdvertiseMission(Shopper targer)
+    {
+        if(_state == AdvertiserState.Advertise)
+        {
+            return;
+        }
+        _counter = 0;
+        _advertiseCounter = 0;
+        _state = AdvertiserState.Advertise;
+        _render.color = Color.red;
+        _pursueTarget = targer;
+    }
+
+    public void DeliverSale()
+    {
+        _salesDelivered += 1;
+        Debug.Log(_salesDelivered);
+        if(_salesDelivered >= _salesTargetNumber)
+        {
+            //remove this from advertiser list.
+            AdvertiserManager.Instance.RemoveAdvertiser(this);
+            Destroy(gameObject);
+        }
+    }
+
+    private void TransitToWandering()
+    {
+        _counter = 0;
+        _advertiseCounter = 0;
+        _render.color = Color.blue;
+        _seekingTarget = GetNewSeekTarget();
+        _state = AdvertiserState.Wandering;
+    }
+
+    private Vector3 GetNewSeekTarget() {
 		// Decide whether we set target on the left or on the right
 		var multiplier = Utils.RandomFloat() > 0.5 ? -1 : 1;
 		var x = multiplier * Utils.RandomFloat(_wanderTargetXMin, _wanderTargetXMax);
 		var y = Utils.RandomFloat(-_wanderTargetYMax, _wanderTargetYMax);
 		var destination =  new Vector3(x, y, -1);
-		Debug.Log(destination);
 		return destination;
 	}
+
 }

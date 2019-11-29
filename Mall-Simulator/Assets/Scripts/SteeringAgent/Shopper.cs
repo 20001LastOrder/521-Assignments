@@ -18,13 +18,16 @@ public class Shopper : SteeringAgent
     private Vector3 flowVelocity;
 
     [SerializeField]
-    private float _counter;
+    private float _waitingForSeatTime = 1;
 
     [SerializeField]
     private int _eaterLayer = 9;
 
     [SerializeField]
     private SpriteRenderer _render;
+
+    [SerializeField]
+    private float _flyeredTime = 2;
 
     private Seat _targetSeat;
 
@@ -37,14 +40,20 @@ public class Shopper : SteeringAgent
         InShop,
         TravellingToEat,
         Seating,
-        FinishedEat
+        FinishedEat,
+        Flyered,
+        WaitingForSeat
     }
 
-    private ShopperStatus _status; 
+    private ShopperStatus _state;
+    private ShopperStatus _historyState;
+    private Color _historyColor;
+    private float _counter;
+    private float _flyeredCounter;
 
     protected override void ActionSelection()
     {
-        switch (_status)
+        switch (_state)
         {
             case ShopperStatus.TavellingToExitMall:
                 if (transform.position.x > _despawnX)
@@ -57,19 +66,28 @@ public class Shopper : SteeringAgent
                 {
                     _counter = 0;
                     ResetSteering();
-                    _status = ShopperStatus.InShop;
+                    _state = ShopperStatus.InShop;
                 }
                 break;
             case ShopperStatus.InShop:
                 _counter += Time.deltaTime;
                 if(_counter > IN_SHOP_WAITING_TIME)
                 {
-                    _render.color = Color.red;
+                    // orange color
+                    _render.color = Color.magenta;
                     _counter = 0;
 					ResetSteering();
 					_targetSeat = FoodCourtManager.Instance.GetRandomAvailableSeat();
-					_seekingTarget = _targetSeat.transform.position;
-					_status = ShopperStatus.TravellingToEat;
+                    if(_targetSeat != null)
+                    {
+                        _seekingTarget = _targetSeat.transform.position;
+                        _state = ShopperStatus.TravellingToEat;
+                    }
+                    else
+                    {
+                        _state = ShopperStatus.WaitingForSeat;
+                    }
+					
 				}
                 break;
             case ShopperStatus.TravellingToEat:
@@ -81,12 +99,25 @@ public class Shopper : SteeringAgent
                     _counter = 0;
                     _positionBeforeSit = transform.position;
                     _targetSeat.IsAvailable = false;
-                    _status = ShopperStatus.Seating;
-                }else if (!_targetSeat.IsAvailable)
+                    _state = ShopperStatus.Seating;
+                }else if (_targetSeat == null || !_targetSeat.IsAvailable)
                 {
-                    _targetSeat = FoodCourtManager.Instance.GetRandomAvailableSeat();
-                    _seekingTarget = _targetSeat.transform.position;
+                    _state = ShopperStatus.WaitingForSeat;
                 }
+                break;
+            case ShopperStatus.WaitingForSeat:
+                _counter += Time.deltaTime;
+                if(_counter > _waitingForSeatTime)
+                {
+                    _counter = 0;
+                    _targetSeat = FoodCourtManager.Instance.GetRandomAvailableSeat();
+                    if(_targetSeat != null && _targetSeat.IsAvailable)
+                    {
+                        _seekingTarget = _targetSeat.transform.position;
+                        _state = ShopperStatus.TravellingToEat;
+                    }
+                }
+
                 break;
             case ShopperStatus.Seating:
                 _counter += Time.deltaTime;
@@ -95,7 +126,7 @@ public class Shopper : SteeringAgent
                     _render.color = Color.green;
                     _counter = 0;
                     _seekingTarget = _positionBeforeSit;
-                    _status = ShopperStatus.FinishedEat;
+                    _state = ShopperStatus.FinishedEat;
                 }
                 break;
             case ShopperStatus.FinishedEat:
@@ -104,18 +135,42 @@ public class Shopper : SteeringAgent
                     // enable collision between seat and player
                     _targetSeat.IsAvailable = true;
                     gameObject.layer = 13;
-                    _status = ShopperStatus.TavellingToExitMall;
+                    _state = ShopperStatus.TavellingToExitMall;
                     ResetSteering();
                     _seekingTarget = null;
+                }
+                break;
+            case ShopperStatus.Flyered:
+                _flyeredCounter += Time.deltaTime;
+                // when the flyered is finished, go back to whatever state before
+                if(_flyeredCounter > _flyeredTime)
+                {
+                    _flyeredCounter = 0;
+                    _state = _historyState;
+                    _render.color = _historyColor;
                 }
                 break;
         }
     }
 
+    public void FlyerPlayer()
+    {
+        if(_state == ShopperStatus.Flyered)
+        {
+            return;
+        }
+        _flyeredCounter = 0;
+        _historyState = _state;
+        _historyColor = _render.color;
+        _render.color = Color.black;
+        _state = ShopperStatus.Flyered;
+        ResetSteering();
+    }
+
     protected override void Steering()
     {
-        //no steering in shop and seat
-        switch (_status)
+        //no steering in flyered
+        switch (_state)
         {
             case ShopperStatus.TavellingToExitMall:
                 SteeringManager.Instance.FlowFieldFollowing(this, flowVelocity);
@@ -129,6 +184,9 @@ public class Shopper : SteeringAgent
             case ShopperStatus.FinishedEat:
             case ShopperStatus.Seating:
                 SteeringManager.Instance.Seek(this);
+                break;
+            case ShopperStatus.WaitingForSeat:
+                SteeringManager.Instance.ObstacleAvoidance(this);
                 break;
         }
     }
@@ -146,12 +204,12 @@ public class Shopper : SteeringAgent
         //toss a coin and decide what the shopper should do
         if(Utils.RandomFloat() < 0.5f)
         {
-            _status = ShopperStatus.TavellingToExitMall;
+            _state = ShopperStatus.TavellingToExitMall;
         }
         else
         {
             _seekingTarget = ShopManager.Instance.GetRandomShopLocation();
-            _status = ShopperStatus.TravellingToShop;
+            _state = ShopperStatus.TravellingToShop;
         }
 
         this._maxSpeed = Utils.RandomFloat(_shopperMinSpeed, _shopperMaxSpeed);

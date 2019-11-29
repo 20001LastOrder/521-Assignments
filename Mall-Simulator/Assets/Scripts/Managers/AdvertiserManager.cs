@@ -13,6 +13,12 @@ public class AdvertiserManager : ManagerBase<AdvertiserManager>
 	private float _generateMaxY;
 	[SerializeField]
 	private int _advertiserLayer = 12;
+    [SerializeField]
+    private int _maxNumAdvertisers = 3;
+
+    [SerializeField]
+    private float _advertiseDistance = 5;
+
 
 	[SerializeField]
 	private GameObject _advertiserPrefab;
@@ -24,12 +30,12 @@ public class AdvertiserManager : ManagerBase<AdvertiserManager>
     void Start()
     {
 		_advertisers = new List<Advertiser>();
-		for (var i = 0; i < 3; i++) {
-			InstantiateShopper();
+		for (var i = 0; i < _maxNumAdvertisers; i++) {
+			InstantiateAdvertiser();
 		}
 	}
 
-	private void InstantiateShopper() {
+	private void InstantiateAdvertiser() {
 		var advertiser = Instantiate(_advertiserPrefab, GetRandomStartingPoint(), Quaternion.identity).GetComponent<Advertiser>();
 		advertiser.transform.parent = transform;
 		advertiser.gameObject.layer = _advertiserLayer;
@@ -40,4 +46,21 @@ public class AdvertiserManager : ManagerBase<AdvertiserManager>
 		return new Vector3(_generateX, Utils.RandomFloat(_generateMinY, _generateMaxY), -1);
 	}
 
+    public void RemoveAdvertiser(Advertiser a)
+    {
+        _advertisers.Remove(a);
+        InstantiateAdvertiser();
+    }
+
+    public void BroadCastAdvertiseOpportunity(Shopper targerCustomer)
+    {
+        var pos = targerCustomer.transform.position;
+        foreach(var advertiser in _advertisers)
+        {
+            if(Vector3.Distance(advertiser.transform.position, pos) <= _advertiseDistance)
+            {
+                advertiser.SendToAdvertiseMission(targerCustomer);
+            }
+        }
+    }
 }

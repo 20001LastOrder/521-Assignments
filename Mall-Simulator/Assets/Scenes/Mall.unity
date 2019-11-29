@@ -553,7 +553,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 336852363}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 25.89, y: -1.13, z: 0}
+  m_LocalPosition: {x: 25.6, y: -1.13, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1435956479}
@@ -856,8 +856,8 @@ MonoBehaviour:
   _endX: 20
   _maxY: 7
   _minY: -7
-  _updateFrequency: 20
-  _playerGenerationRate: 0
+  _updateFrequency: 5
+  _playerGenerationRate: 10
   _shopperPrefab: {fileID: 5613257611127236162, guid: 95330de672568d348b9cf75e9edce042,
     type: 3}
   _shopperLayer: 13
@@ -1625,7 +1625,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 10
   m_WholeNumbers: 1
-  m_Value: 0
+  m_Value: 5
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -1870,10 +1870,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d491e253569c29c44914d76f920553ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _generateX: 17
+  _generateX: 15
   _generateMinY: -8
   _generateMaxY: 8
   _advertiserLayer: 12
+  _maxNumAdvertisers: 5
+  _advertiseDistance: 5
   _advertiserPrefab: {fileID: 2890529750216677571, guid: 70c7508e232f13541959e781ecd297f7,
     type: 3}
 --- !u!1001 &1093209506

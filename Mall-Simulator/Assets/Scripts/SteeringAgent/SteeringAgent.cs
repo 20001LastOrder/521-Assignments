@@ -31,9 +31,6 @@ public abstract class SteeringAgent : CircularObject
     // target in seeking behaviour
     public Vector3? _seekingTarget;
 
-    // target in pursuit behaviour
-    public CircularObject pursuitTarget;
-
     // steering force at each time frame
     protected Vector3 _steering;
     // velocity

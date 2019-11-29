@@ -26,7 +26,7 @@ public abstract class ManagerBase<T> : MonoBehaviour where T : ManagerBase<T>
         _manager = (T)this;
     }
 
-    public bool Exist()
+    public static bool Exist()
     {
         return _manager != null;
     }

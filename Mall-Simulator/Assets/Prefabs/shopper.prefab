@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 1474972476}
   m_Layer: 13
   m_Name: shopper
-  m_TagString: Untagged
+  m_TagString: shopper
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -141,9 +141,9 @@ MonoBehaviour:
   _shopperMaxSpeed: 2
   _despawnX: 19
   flowVelocity: {x: 1, y: 0, z: 0}
-  _counter: 0
   _eaterLayer: 9
   _render: {fileID: 5613257611147008464}
+  _flyeredTime: 2
 --- !u!58 &1474972475
 CircleCollider2D:
   m_ObjectHideFlags: 0
