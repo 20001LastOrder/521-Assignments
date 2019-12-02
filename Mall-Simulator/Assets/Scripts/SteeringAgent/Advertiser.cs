@@ -15,11 +15,7 @@ public class Advertiser : SteeringAgent {
 	[SerializeField]
 	private float _wanderTargetYMax= 8;
 
-	[SerializeField]
-	private float _advertiseFreq = 5;
 
-	[SerializeField]
-	private float _advertiseProb = 0.5f;
 
     [SerializeField]
     private int _salesTargetNumber = 3;
@@ -43,18 +39,49 @@ public class Advertiser : SteeringAgent {
 	private float _advertiseCounter;
     private float _salesDelivered;
     private SteeringAgent _pursueTarget;
+    private float _advertiseFreq = 5;
+    private float _advertiseProb = 0.5f;
+
+    public float AdvertiserFreq
+    {
+        set
+        {
+            _advertiseFreq = value;
+        }
+    }
+
+    public float AdvertiseProb
+    {
+        set
+        {
+            _advertiseProb = value;
+        }
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+        _state = AdvertiserState.Wandering;
+        _seekingTarget = GetNewSeekTarget();
+        UpdateAdvertiseFreq();
+        UpdateAdvertiseProb();
+    }
+
+    public void UpdateAdvertiseFreq()
+    {
+        _advertiseFreq = AdvertiserManager.Instance.AdvertiseFreq;
+    }
+
+    public void UpdateAdvertiseProb()
+    {
+        _advertiseProb = AdvertiserManager.Instance.AdvertiseProb;
+    }
 
     private enum AdvertiserState {
 		Wandering,
         Advertise
 	}
 	private AdvertiserState _state;
-
-	protected override void Start() {
-		base.Start();
-		_state = AdvertiserState.Wandering;
-		_seekingTarget = GetNewSeekTarget();
-	}
 
 	protected override void ActionSelection() {
 		switch (_state) {
@@ -104,7 +131,8 @@ public class Advertiser : SteeringAgent {
 	private void CheckToPutFlyer() {
 		var shouldAdvertise = Utils.RandomFloat() < _advertiseProb;
 		if (shouldAdvertise) {
-			Instantiate(_flyerPrefab, transform.position, Quaternion.identity);
+			Flyer flyer = Instantiate(_flyerPrefab, transform.position, Quaternion.identity).GetComponent<Flyer>();
+            AdvertiserManager.Instance.Flyers.Add(flyer);
 		}
 	}
 
@@ -147,9 +175,14 @@ public class Advertiser : SteeringAgent {
         if(_salesDelivered >= _salesTargetNumber)
         {
             //remove this from advertiser list.
-            AdvertiserManager.Instance.RemoveAdvertiser(this);
-            Destroy(gameObject);
+            DestroySelf();
         }
+    }
+
+    public void DestroySelf()
+    {
+        AdvertiserManager.Instance.RemoveAdvertiser(this);
+        Destroy(gameObject);
     }
 
     private void TransitToWandering()

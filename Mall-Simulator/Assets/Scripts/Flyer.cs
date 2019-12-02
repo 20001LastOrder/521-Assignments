@@ -13,7 +13,7 @@ public class Flyer : MonoBehaviour
     private bool _isConsumed = false;
     private void Start()
     {
-        GetComponent<CircleCollider2D>().radius = _flyerRadius;
+        GetComponent<CircleCollider2D>().radius = AdvertiserManager.Instance.FlyerObservingDistance;
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -25,6 +25,11 @@ public class Flyer : MonoBehaviour
         TryConsumeFlyer(collision.gameObject);
     }
 
+    public void UpdateFlyerObservingDistance()
+    {
+        GetComponent<CircleCollider2D>().radius = AdvertiserManager.Instance.FlyerObservingDistance;
+    }
+
     private void TryConsumeFlyer(GameObject obj)
     {
         if (_isConsumed||!obj.tag.Equals(_shopperTag))
@@ -34,7 +39,8 @@ public class Flyer : MonoBehaviour
 
         Shopper shopper = obj.GetComponent<Shopper>();
         shopper.FlyerPlayer();
-        AdvertiserManager.Instance.BroadCastAdvertiseOpportunity(shopper);
+        AdvertiserManager.Instance.BroadcastAdvertiseOpportunity(shopper);
+        AdvertiserManager.Instance.Flyers.Remove(this);
         _isConsumed = true;
         Destroy(this.gameObject);
     }
