@@ -5,6 +5,7 @@ using System;
 
 public class ShopperManager : ManagerBase<ShopperManager>
 {
+	// Information to generate shoppers
     [SerializeField]
     private float _startX;
     [SerializeField]
@@ -14,15 +15,18 @@ public class ShopperManager : ManagerBase<ShopperManager>
     [SerializeField]
     private float _minY;
 
+	// Shopper generation frequency
     [SerializeField]
     private float _updateFrequency = 20;
 
+	// number of players generated at once
 	[SerializeField]
 	private float _playerGenerationRate;
 	
     [SerializeField]
     private GameObject _shopperPrefab;
 
+	// layer of shoppers
 	[SerializeField]
 	private int _shopperLayer = 13;
 
@@ -39,6 +43,7 @@ public class ShopperManager : ManagerBase<ShopperManager>
     // Update is called once per frame
     void Update()
     {
+		// count and generate new shoppers
         counter += Time.deltaTime;
         if(counter > _updateFrequency)
         {
@@ -50,6 +55,7 @@ public class ShopperManager : ManagerBase<ShopperManager>
         }
 	}
 
+	// deregister shopper from shopper list
     public void DeregisterShopper(Shopper shopper)
     {
         _shoppers.Remove(shopper);
@@ -63,11 +69,7 @@ public class ShopperManager : ManagerBase<ShopperManager>
 		_shoppers.Add(shopper);
     }
 
-    public Vector3 GetDestination(Vector3 currentPosition)
-    {
-        return new Vector3(_endX, currentPosition.y, -1);
-    }
-
+	//create random starting point for a shopper
     public Vector3 GetRandomStartingPoint()
     {
         return new Vector3(_startX, Utils.RandomFloat(_minY, _maxY), -1);

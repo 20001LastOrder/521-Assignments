@@ -23,8 +23,8 @@ public class Seat : CircularObject
     // Start is called before the first frame update
     protected void  Awake()
     {
-        ObstacleManager.Instance.DeregisterObstacle(this);
-        var currentSize = GetComponent<SpriteRenderer>().bounds.size;
+		// update bound based on the radius
+		var currentSize = GetComponent<SpriteRenderer>().bounds.size;
         var scale = transform.localScale;
         scale.x = scale.x * _radius * 2 / (currentSize.x);
         scale.y = scale.y * _radius * 2 / (currentSize.y);

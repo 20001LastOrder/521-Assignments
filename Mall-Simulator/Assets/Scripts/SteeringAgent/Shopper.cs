@@ -3,7 +3,7 @@
 public class Shopper : SteeringAgent
 {
     private static readonly float IN_SHOP_WAITING_TIME = 1.0f;
-    private static readonly float EAT_TIME = 4.0f;
+    private static readonly float EAT_TIME = 6.0f;
 
     [SerializeField]
     private float _shopperMinSpeed;
@@ -11,6 +11,7 @@ public class Shopper : SteeringAgent
     [SerializeField]
     private float _shopperMaxSpeed;
 
+	// X position that the agent gets despawned
     [SerializeField]
     private float _despawnX;
 
@@ -153,6 +154,7 @@ public class Shopper : SteeringAgent
         }
     }
 
+	// make the player flyered
     public void FlyerPlayer()
     {
         if(_state == ShopperStatus.Flyered)

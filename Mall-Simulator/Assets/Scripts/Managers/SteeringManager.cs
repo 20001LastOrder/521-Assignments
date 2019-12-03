@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class SteeringManager : ManagerBase<SteeringManager>
 {
+	// seek behaviour
     public void Seek(SteeringAgent agent)
     {
         // if the agent does not have any target, do nothing
@@ -15,36 +16,24 @@ public class SteeringManager : ManagerBase<SteeringManager>
 		agent.AddSteering(GetSeekForce(agent, agent._seekingTarget.Value));
     }
 
-	private Vector3 GetSeekForce(SteeringAgent agent, Vector3 target) {
-		//calculate seeking force
-		var offset = target - agent.transform.position;
-		var distance = offset.magnitude;
-		var allowedSpeed = Mathf.Min(agent.MaxSpeed, agent.MaxSpeed * (distance / agent.ArrivalDistance));
-		var desiredSpeed = offset.normalized * allowedSpeed;
-		return desiredSpeed - agent.Velocity;
-	}
-
-	private Vector3 GetPursueForce(SteeringAgent agent, SteeringAgent target) {
-		var position = target.transform.position;
-		var velocity = target.Velocity;
-		var nextPosition = position + velocity * Time.deltaTime;
-		return GetSeekForce(agent, nextPosition);
-	}
-
-    public void Wandering(SteeringAgent agent)
+	// wandering behaviour
+    public void Wandering(SteeringAgent agent, float wanderingFactor)
     {
-        var wanderingForce = Random.insideUnitCircle.normalized;
+        var wanderingForce = wanderingFactor * Random.insideUnitCircle.normalized;
         agent.AddSteering(wanderingForce);
     }
 
+	// pursuit
 	public void Pursue(SteeringAgent agent, SteeringAgent target) {
 		agent.AddSteering(GetPursueForce(agent, target));
 	}
 
+	// flee
 	public void Flee(SteeringAgent agent, SteeringAgent target) {
 		agent.AddSteering(-GetPursueForce(agent, target));
 	}
 
+	// flow field following
     public void FlowFieldFollowing(SteeringAgent agent, Vector3 desiredVelocity)
     {
         // set to the maximum speed of the agent
@@ -52,13 +41,15 @@ public class SteeringManager : ManagerBase<SteeringManager>
         agent.AddSteering(desiredVelocity - agent.Velocity);
     }
 
+	// flow field ObstacleAvoidance
 	public void ObstacleAvoidance(SteeringAgent agent) {
-		//agent.gameObject.layer = 10;
 		//get the side vector
 		var side = agent.transform.up;
 		var forward = agent.transform.right;
 		var ray1Pos = side.normalized * agent.Radius + agent.transform.position;
 		var ray2Pos = side.normalized * -agent.Radius + agent.transform.position;
+
+		// check collision using rays
 		var c1 = CheckCollision(ray1Pos, forward, agent.ObstacleAvoidanceLookahead);
 		var c2 = CheckCollision(ray2Pos, forward, agent.ObstacleAvoidanceLookahead);
 		var colliderToAvoid = FindNearestCollider(agent, c1, c2);
@@ -122,4 +113,21 @@ public class SteeringManager : ManagerBase<SteeringManager>
 			return c1;
 		}
 	}
+
+	private Vector3 GetSeekForce(SteeringAgent agent, Vector3 target) {
+		//calculate seeking force
+		var offset = target - agent.transform.position;
+		var distance = offset.magnitude;
+		var allowedSpeed = Mathf.Min(agent.MaxSpeed, agent.MaxSpeed * (distance / agent.ArrivalDistance));
+		var desiredSpeed = offset.normalized * allowedSpeed;
+		return desiredSpeed - agent.Velocity;
+	}
+
+	private Vector3 GetPursueForce(SteeringAgent agent, SteeringAgent target) {
+		var position = target.transform.position;
+		var velocity = target.Velocity;
+		var nextPosition = position + velocity * Time.deltaTime;
+		return GetSeekForce(agent, nextPosition);
+	}
+
 }

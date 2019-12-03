@@ -15,8 +15,8 @@ public class UIManager : ManagerBase<UIManager>
 
     public void OnObservingDistanceChange(float value)
     {
-        AdvertiserManager.Instance.FlyerObservingDistance = value;
-    }
+		AdvertiserManager.Instance.ObservingDistance = value;
+	}
 
     public void OnSalePatchDistanceChange(float value)
     {

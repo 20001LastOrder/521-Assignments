@@ -7,14 +7,10 @@ public class Flyer : MonoBehaviour
     [SerializeField]
     private string _shopperTag = "shopper";
 
-    [SerializeField]
-    private float _flyerRadius = 5;
 
     private bool _isConsumed = false;
-    private void Start()
-    {
-        GetComponent<CircleCollider2D>().radius = AdvertiserManager.Instance.FlyerObservingDistance;
-    }
+
+	// when the player bounced into the flyer
     private void OnTriggerEnter2D(Collider2D collision)
     {
         TryConsumeFlyer(collision.gameObject);
@@ -24,12 +20,8 @@ public class Flyer : MonoBehaviour
     {
         TryConsumeFlyer(collision.gameObject);
     }
-
-    public void UpdateFlyerObservingDistance()
-    {
-        GetComponent<CircleCollider2D>().radius = AdvertiserManager.Instance.FlyerObservingDistance;
-    }
-
+	
+	// one flyer can be consumed only once
     private void TryConsumeFlyer(GameObject obj)
     {
         if (_isConsumed||!obj.tag.Equals(_shopperTag))

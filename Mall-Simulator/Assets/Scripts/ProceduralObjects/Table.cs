@@ -27,8 +27,8 @@ public class Table : CircularObject
     public float FullRadius => _tableRadius;
     public List<Seat> Seats => _seats;
 
-    // Start is called before the first frame update
-    protected void Awake()
+	// update bound based on the radius
+	protected void Awake()
     {
         var currentSize = GetComponent<SpriteRenderer>().bounds.size;
         var scale = transform.localScale;
@@ -48,6 +48,7 @@ public class Table : CircularObject
         GenerateSeats(numSeats);
     }
 
+	// generate seat wrt seat distance constraints
     private void GenerateSeats(int numSeats)
     {
         _seats = new List<Seat>();

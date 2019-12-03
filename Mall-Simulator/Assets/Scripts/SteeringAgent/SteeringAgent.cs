@@ -76,6 +76,7 @@ public abstract class SteeringAgent : CircularObject
 
     protected abstract void Steering();
 
+	// simple vihecle model locomotion applied to all agents
     protected void Locommotion()
     {
         _steering = Vector3.ClampMagnitude(_steering, _maxForce);

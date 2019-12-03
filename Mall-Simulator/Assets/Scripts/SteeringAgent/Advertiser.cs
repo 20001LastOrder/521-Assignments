@@ -3,63 +3,50 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Advertiser : SteeringAgent {
+
+
 	[SerializeField]
 	private float _advertiserDislikeDistance;
 
+	// info used to randomly pick seek target
 	[SerializeField]
 	private float _wanderTargetXMin = 16;
 	[SerializeField]
 	private float _wanderTargetXMax = 17;
 	[SerializeField]
-	private float _wanderTargetChangeTime = 5;
+	private float _wanderTargetChangeTime = 2;
 	[SerializeField]
 	private float _wanderTargetYMax= 8;
-
-
 
     [SerializeField]
     private int _salesTargetNumber = 3;
 
-    [SerializeField]
-    private float _saleDistance = 3;
-
+	// time used to make a sale success
     [SerializeField]
     private float _saleTime = 4;
 
+	// time wait to sale smt
     [SerializeField]
     private float _salePatienceTime = 5;
 
     [SerializeField]
     private SpriteRenderer _render;
-
 	[SerializeField]
 	private GameObject _flyerPrefab;
 
-    [SerializeField]
-    private TextMesh _text;
-
+	// counter used to general time count
 	private float _counter;
+	// counter specific for advertise
 	private float _advertiseCounter;
     private int _salesDelivered;
+
+	// persuit target (a shopper)
     private SteeringAgent _pursueTarget;
     private float _advertiseFreq = 5;
-    private float _advertiseProb = 0.5f;
+	private float _salePatchDistance = 3;
+	private float _advertiseProb = 0.5f;
     private Color[] _advertiserColors = { Color.gray, Color.blue, Color.yellow};
-    public float AdvertiserFreq
-    {
-        set
-        {
-            _advertiseFreq = value;
-        }
-    }
-
-    public float AdvertiseProb
-    {
-        set
-        {
-            _advertiseProb = value;
-        }
-    }
+ 
 
     protected override void Start()
     {
@@ -68,6 +55,7 @@ public class Advertiser : SteeringAgent {
         _seekingTarget = GetNewSeekTarget();
         UpdateAdvertiseFreq();
         UpdateAdvertiseProb();
+		UpdateSalePatchDistance();
         _render.color = _advertiserColors[_salesDelivered];
         this._velocity = new Vector3(-_maxSpeed, 0, 0);
     }
@@ -82,12 +70,17 @@ public class Advertiser : SteeringAgent {
         _advertiseProb = AdvertiserManager.Instance.AdvertiseProb;
     }
 
+	public void UpdateSalePatchDistance() {
+		_salePatchDistance = AdvertiserManager.Instance.SalePatchDistance;
+	}
+
     private enum AdvertiserState {
 		Wandering,
         Advertise
 	}
 	private AdvertiserState _state;
 
+	// action selection based on state
 	protected override void ActionSelection() {
 		switch (_state) {
 			case AdvertiserState.Wandering:
@@ -109,8 +102,9 @@ public class Advertiser : SteeringAgent {
                 if(_pursueTarget == null)
                 {
                     TransitToWandering();
+					return;
                 }
-                if(Vector3.Distance(transform.position, _pursueTarget.transform.position) < _saleDistance)
+                if(Vector3.Distance(transform.position, _pursueTarget.transform.position) < _salePatchDistance)
                 {
                     _advertiseCounter += Time.deltaTime;
                 }
@@ -134,18 +128,19 @@ public class Advertiser : SteeringAgent {
 	}
 
 	private void CheckToPutFlyer() {
-		var shouldAdvertise = Utils.RandomFloat() < _advertiseProb;
+		var shouldAdvertise = Utils.RandomFloat() < _advertiseProb && (transform.position.y <= ShopManager.Instance.ShopExitY && transform.position.y >= -ShopManager.Instance.ShopExitY);
 		if (shouldAdvertise) {
 			Flyer flyer = Instantiate(_flyerPrefab, transform.position, Quaternion.identity).GetComponent<Flyer>();
             AdvertiserManager.Instance.Flyers.Add(flyer);
 		}
 	}
 
+	// steering behaviour
 	protected override void Steering() {
 
 		switch (_state) {
 			case AdvertiserState.Wandering:
-                SteeringManager.Instance.Wandering(this);
+                SteeringManager.Instance.Wandering(this, 0.01f);
                 SteeringManager.Instance.Seek(this);
                 foreach (var a in AdvertiserManager.Instance.Advertisers) {
 					if(Vector3.Distance(transform.position, a.transform.position) < _advertiserDislikeDistance && a != this) {
@@ -161,6 +156,7 @@ public class Advertiser : SteeringAgent {
         }
 	}
 
+	//send to pursuit a customer and try to sale
     public void SendToAdvertiseMission(Shopper targer)
     {
         if(_state == AdvertiserState.Advertise)
@@ -179,7 +175,6 @@ public class Advertiser : SteeringAgent {
         _salesDelivered += 1;
         if (_salesDelivered >= _salesTargetNumber)
         {
-            //remove this from advertiser list.
             DestroySelf();
         }
         else
@@ -190,10 +185,12 @@ public class Advertiser : SteeringAgent {
 
     public void DestroySelf()
     {
-        AdvertiserManager.Instance.RemoveAdvertiser(this);
+		//remove this from advertiser list.
+		AdvertiserManager.Instance.RemoveAdvertiser(this);
         Destroy(gameObject);
     }
 
+	// transit back to wandering
     private void TransitToWandering()
     {
         _counter = 0;

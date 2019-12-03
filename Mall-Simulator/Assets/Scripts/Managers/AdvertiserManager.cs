@@ -4,27 +4,35 @@ using UnityEngine;
 
 public class AdvertiserManager : ManagerBase<AdvertiserManager>
 {
+	// x position to generate the advertiser
     [SerializeField]
     private float _generateX;
 
+	//Y range to generate the advertiser
     [SerializeField]
     private float _generateMinY;
     [SerializeField]
     private float _generateMaxY;
+
+	//Layer of the advertiser
     [SerializeField]
     private int _advertiserLayer = 12;
-    [SerializeField]
+
+	//initial maximum number of advertisers
+	[SerializeField]
     private int _maxNumAdvertisers = 3;
 
+	//advertiser observing distance
     [SerializeField]
-    private float _salePatchDistance = 5;
+    private float _observingDistance = 5;
 
     [SerializeField]
     private GameObject _advertiserPrefab;
 
     [SerializeField]
-    private float _flyerObservingDistance = 5;
+    private float _salePatchDistacne = 5;
 
+	// frequency and prob the advertiser advertises
     [SerializeField]
     private float _advertiseFreq = 5;
 
@@ -34,28 +42,28 @@ public class AdvertiserManager : ManagerBase<AdvertiserManager>
     private List<Advertiser> _advertisers;
     private List<Flyer> _flyers;
 
-
+	// list of advertisers and flyers
     public List<Advertiser> Advertisers => _advertisers;
     public List<Flyer> Flyers => _flyers;
 
-    public float SalePatchDistance
+    public float ObservingDistance
     {
         set
         {
-            _salePatchDistance = value;
+            _observingDistance = value;
         }
     }
 
-    public float FlyerObservingDistance {
-        get => _flyerObservingDistance;
+	// update all advertisers when the properties below got updated 
+	public float SalePatchDistance {
+        get => _salePatchDistacne;
         set
         {
-            _flyerObservingDistance = value;
-            foreach(var flyer in _flyers)
-            {
-                flyer.UpdateFlyerObservingDistance();
-            }
-        }
+            _salePatchDistacne = value;
+			foreach (var advertiser in _advertisers) {
+				advertiser.UpdateSalePatchDistance();
+			}
+		}
     }
 
     public float AdvertiseFreq
@@ -107,7 +115,6 @@ public class AdvertiserManager : ManagerBase<AdvertiserManager>
         }
     }
 
-    // Start is called before the first frame update
     void Start()
     {
         _flyers = new List<Flyer>();
@@ -124,6 +131,7 @@ public class AdvertiserManager : ManagerBase<AdvertiserManager>
 		_advertisers.Add(advertiser);
 	}
 
+	// Generate a random starting point to spawn the advertiser
 	public Vector3 GetRandomStartingPoint() {
 		return new Vector3(_generateX, Utils.RandomFloat(_generateMinY, _generateMaxY), -1);
 	}
@@ -137,16 +145,26 @@ public class AdvertiserManager : ManagerBase<AdvertiserManager>
         }
     }
 
-    public void BroadcastAdvertiseOpportunity(Shopper targerCustomer)
+	// start a corountine that continuing broadcast the information
+	public void BroadcastAdvertiseOpportunity(Shopper targerCustomer) {
+		StartCoroutine(BroadcastAdvertiseOpportunityCoroutine(targerCustomer));
+	}
+
+	//broadcast the opportunity for 2s
+	private IEnumerator BroadcastAdvertiseOpportunityCoroutine(Shopper targerCustomer)
     {
-        var pos = targerCustomer.transform.position;
-        foreach(var advertiser in _advertisers)
-        {
-            if(Vector3.Distance(advertiser.transform.position, pos) <= _salePatchDistance)
-            {
-                advertiser.SendToAdvertiseMission(targerCustomer);
-            }
-        }
+		float counter = 0;
+
+		while(counter < 2f) {
+			var pos = targerCustomer.transform.position;
+			foreach (var advertiser in _advertisers) {
+				if (Vector3.Distance(advertiser.transform.position, pos) <= _observingDistance) {
+					advertiser.SendToAdvertiseMission(targerCustomer);
+				}
+			}
+			counter += 0.1f;
+			yield return new WaitForSeconds(0.1f);
+		}
     }
 
 }

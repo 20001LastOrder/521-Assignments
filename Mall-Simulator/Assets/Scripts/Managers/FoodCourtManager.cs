@@ -4,33 +4,27 @@ using UnityEngine;
 using System.Linq;
 public class FoodCourtManager : ManagerBase<FoodCourtManager>
 {
+	// information used to generate the food court (including tables and platers)
     [SerializeField]
     private float _foodCourtWidth;
-
     [SerializeField]
     private float _foodCourtHeight;
-
     [SerializeField]
     private int _tableNumberMax;
-
     [SerializeField]
     private int _tableNumberMin;
-
     [SerializeField]
     private int _planterNumberMax;
-
     [SerializeField]
     private int _planterNumberMin;
-
     [SerializeField]
     private float _tableTableDistance;
-
     [SerializeField]
     private float _tablePlanterDistance;
-
     [SerializeField]
     private float _planterPlanterDistance;
 
+	// prefabs
     [SerializeField]
     private GameObject _tablePrefab;
 
@@ -55,11 +49,13 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
         return _availableSeats[index];
     }
 
-    public void RegisterAvailableSeat(Seat seat)
+	// this should be called once the availability for a seat chaneged
+	public void RegisterAvailableSeat(Seat seat)
     {
         _availableSeats.Add(seat);
     }
 
+	// this should be called once the availability for a seat chaneged
     public void DeregisterAvailableSeat(Seat seat)
     {
         _availableSeats.Remove(seat);
@@ -79,7 +75,8 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
     {
         _tables = new List<Table>();
 
-        var i = 0;
+		// try to generate tables to reach the required number wrt distance constraints, if this is impossible, then just return the best result
+		var i = 0;
         while (_tables.Count < numTables && i < 5000)
         {
             i++;
@@ -93,7 +90,8 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
         }
     }
 
-    private void GeneratePlanters(int numPlanters)
+	// try to generate tables to reach the required number wrt distance constraints, if this is impossible, then just return the best result
+	private void GeneratePlanters(int numPlanters)
     {
         _planters = new List<Planter>();
 
@@ -112,6 +110,7 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
         }
     }
 
+	// Generate random table location
     private Vector3 GenerateRandomTableLocation()
     {
         if(_tables.Count == 0)
@@ -127,7 +126,8 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
         }
     }
 
-    private Vector3 GenerateRandomPlanterLocation(Table table)
+	// Generate psuedo random table location
+	private Vector3 GenerateRandomPlanterLocation(Table table)
     {
         var centerPos = table.transform.position;
 
@@ -139,11 +139,14 @@ public class FoodCourtManager : ManagerBase<FoodCourtManager>
         return centerPos + (_planterRadius + table.FullRadius + _tablePlanterDistance + noise) * randomDirection;
     }
 
-    private bool IsSatisfyTableTableConstraint(Vector3 pos)
+	// Generate psuedo random table location
+	private bool IsSatisfyTableTableConstraint(Vector3 pos)
     {
         return _tables.TrueForAll(table => CheckTableTableConstraint(table, pos));
     }
 
+
+	// Change different constraints
     private bool IsSatisfyTablePlanterConstraint(Vector3 pos)
     {
         return _tables.TrueForAll(table => CheckTablePlanterConstraint(table, pos));

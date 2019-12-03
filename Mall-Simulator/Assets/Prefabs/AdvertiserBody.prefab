@@ -179,13 +179,11 @@ MonoBehaviour:
   _wanderTargetChangeTime: 10
   _wanderTargetYMax: 8
   _salesTargetNumber: 3
-  _saleDistance: 3
   _saleTime: 4
   _salePatienceTime: 5
   _render: {fileID: 6020909511916330956}
   _flyerPrefab: {fileID: 2017614908604390223, guid: f6084e5c3d5096e4b8bd8825c0b10330,
     type: 3}
-  _text: {fileID: 0}
 --- !u!1 &3267441798663473336
 GameObject:
   m_ObjectHideFlags: 0
