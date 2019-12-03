@@ -35,13 +35,16 @@ public class Advertiser : SteeringAgent {
 	[SerializeField]
 	private GameObject _flyerPrefab;
 
+    [SerializeField]
+    private TextMesh _text;
+
 	private float _counter;
 	private float _advertiseCounter;
-    private float _salesDelivered;
+    private int _salesDelivered;
     private SteeringAgent _pursueTarget;
     private float _advertiseFreq = 5;
     private float _advertiseProb = 0.5f;
-
+    private Color[] _advertiserColors = { Color.gray, Color.blue, Color.yellow};
     public float AdvertiserFreq
     {
         set
@@ -65,6 +68,8 @@ public class Advertiser : SteeringAgent {
         _seekingTarget = GetNewSeekTarget();
         UpdateAdvertiseFreq();
         UpdateAdvertiseProb();
+        _render.color = _advertiserColors[_salesDelivered];
+        this._velocity = new Vector3(-_maxSpeed, 0, 0);
     }
 
     public void UpdateAdvertiseFreq()
@@ -140,8 +145,9 @@ public class Advertiser : SteeringAgent {
 
 		switch (_state) {
 			case AdvertiserState.Wandering:
-				SteeringManager.Instance.Seek(this);
-				foreach(var a in AdvertiserManager.Instance.Advertisers) {
+                SteeringManager.Instance.Wandering(this);
+                SteeringManager.Instance.Seek(this);
+                foreach (var a in AdvertiserManager.Instance.Advertisers) {
 					if(Vector3.Distance(transform.position, a.transform.position) < _advertiserDislikeDistance && a != this) {
 						SteeringManager.Instance.Flee(this, a);
 					}
@@ -171,11 +177,14 @@ public class Advertiser : SteeringAgent {
     public void DeliverSale()
     {
         _salesDelivered += 1;
-        Debug.Log(_salesDelivered);
-        if(_salesDelivered >= _salesTargetNumber)
+        if (_salesDelivered >= _salesTargetNumber)
         {
             //remove this from advertiser list.
             DestroySelf();
+        }
+        else
+        {
+            _render.color = _advertiserColors[_salesDelivered];
         }
     }
 
@@ -189,7 +198,14 @@ public class Advertiser : SteeringAgent {
     {
         _counter = 0;
         _advertiseCounter = 0;
-        _render.color = Color.blue;
+        if(_salesDelivered >= _salesTargetNumber)
+        {
+            _render.color = _advertiserColors[2];
+        }
+        else
+        {
+            _render.color = _advertiserColors[_salesDelivered];
+        }
         _seekingTarget = GetNewSeekTarget();
         _state = AdvertiserState.Wandering;
     }

@@ -36,7 +36,10 @@ public abstract class SteeringAgent : CircularObject
     // velocity
     protected Vector3 _velocity;
 
-    public Vector3 Velocity => _velocity;
+    public Vector3 Velocity
+    {
+        get => _velocity;
+    }
 
     public float MaxSpeed => _maxSpeed;
 

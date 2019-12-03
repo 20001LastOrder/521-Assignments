@@ -2859,7 +2859,7 @@ MonoBehaviour:
   _advertiserLayer: 12
   _maxNumAdvertisers: 5
   _salePatchDistance: 5
-  _advertiserPrefab: {fileID: 2890529750216677571, guid: 70c7508e232f13541959e781ecd297f7,
+  _advertiserPrefab: {fileID: 1640571433730619152, guid: e8fb29d7861247043b8ab1aa57d4c879,
     type: 3}
   _flyerObservingDistance: 5
   _advertiseFreq: 5

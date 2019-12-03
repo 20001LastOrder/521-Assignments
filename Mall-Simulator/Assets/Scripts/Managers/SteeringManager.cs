@@ -31,6 +31,12 @@ public class SteeringManager : ManagerBase<SteeringManager>
 		return GetSeekForce(agent, nextPosition);
 	}
 
+    public void Wandering(SteeringAgent agent)
+    {
+        var wanderingForce = Random.insideUnitCircle.normalized;
+        agent.AddSteering(wanderingForce);
+    }
+
 	public void Pursue(SteeringAgent agent, SteeringAgent target) {
 		agent.AddSteering(GetPursueForce(agent, target));
 	}
